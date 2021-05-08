@@ -45,7 +45,7 @@ typedef struct vehicle_file {
   vehicle_t data[1000];
 } vehicle_file_t;
 
-void read_vehicles_csv(vehicle_file_t *vehicle_file);
+void read_vehicles_csv(vehicle_file_t *vehicle_file, char filename[]);
 
 void print_vehicle(vehicle_t vehicle);
 

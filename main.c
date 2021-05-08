@@ -1,10 +1,11 @@
 #include "vehicle.h"
 #include "line.h"
 #include "helpers.h"
+#include "handlers.h"
 
 void full_test_vehicle() {
   vehicle_file_t vehicle_file, bin_file;
-  read_vehicles_csv(&vehicle_file);
+  read_vehicles_csv(&vehicle_file, VEHICLE_FILENAME_CSV);
   FILE *vehicles_bin = open_file(VEHICLE_FILENAME_BIN, "w+");
   write_vehicle_header(vehicles_bin, vehicle_file.vehicle_header);
   for (int i = 0; i < vehicle_file.vehicle_header.count; i++) {
@@ -36,8 +37,8 @@ void full_test_line() {
 
 
 int main() {
-  full_test_line();
-  full_test_vehicle();
-
+//  full_test_line();
+//  full_test_vehicle();
+  parse_input();
   return 0;
 }

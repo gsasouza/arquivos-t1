@@ -4,6 +4,7 @@
 
 #ifndef T1_HELPERS_H
 #define T1_HELPERS_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,5 +12,7 @@
 char *add_empty_padding(char *str, int size);
 
 FILE *open_file(char filename[], char mode[]);
+
+void binarioNaTela(char *nomeArquivoBinario);
 
 #endif //T1_HELPERS_H

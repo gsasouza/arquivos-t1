@@ -39,9 +39,9 @@ vehicle_header_t create_vehicle_header(char line[]) {
   return new_header;
 }
 
-void read_vehicles_csv(vehicle_file_t *vehicle_file) {
+void read_vehicles_csv(vehicle_file_t *vehicle_file, char filename[]) {
   char line[200];
-  FILE *file = open_file(VEHICLE_FILENAME_CSV, "r");
+  FILE *file = open_file(filename, "r");
   fgets(line, 200, file); // read the header
   vehicle_file->vehicle_header = create_vehicle_header(line);
 
