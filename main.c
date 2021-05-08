@@ -3,19 +3,18 @@
 
 
 int main() {
-  vehicle_t vehicles[1000];
-  int count = read_vehicles_csv(vehicles);
-
-  FILE *vehicles_file = open_file("vehicles.bin", "w+");
-  for (int i = 0; i < count; i++) {
-    print_vehicle(vehicles[i]);
-    write_vehicle(vehicles_file, vehicles[i]);
+  vehicle_file_t vehicle_file, bin_file;
+  read_vehicles_csv(&vehicle_file);
+  FILE *vehicles_bin = open_file("vehicles.bin", "w+");
+  write_vehicle_header(vehicles_bin, vehicle_file.vehicle_header);
+  for (int i = 0; i < vehicle_file.vehicle_header.count; i++) {
+    write_vehicle(vehicles_bin, vehicle_file.data[i]);
   }
-  fseek(vehicles_file, 0, SEEK_SET);
-  for (int i = 0; i < count; i++) {
-    vehicle_t new_vehicle = read_vehicle(vehicles_file, 0);
-    print_vehicle(new_vehicle);
+  fseek(vehicles_bin, 0, SEEK_SET);
+  bin_file.vehicle_header = read_vehicle_header(vehicles_bin);
+  for (int i = 0; i < bin_file.vehicle_header.count; i++) {
+    bin_file.data[i] = read_vehicle(vehicles_bin, 0);
+    print_vehicle(bin_file.data[i]);
   }
-  fclose(vehicles_file);
   return 0;
 }
