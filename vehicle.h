@@ -4,14 +4,15 @@
 
 #ifndef T1_VEHICLE_H
 #define T1_VEHICLE_H
+
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "helpers.h"
 
-#define FILENAME_BIN "vehicles.bin"
-#define FILENAME_CSV "veiculo.csv"
+#define VEHICLE_FILENAME_BIN "vehicles.bin"
+#define VEHICLE_FILENAME_CSV "veiculo.csv"
 
 typedef struct vehicle {
   char prefix[6];
@@ -45,10 +46,17 @@ typedef struct vehicle_file {
 } vehicle_file_t;
 
 void read_vehicles_csv(vehicle_file_t *vehicle_file);
+
 void print_vehicle(vehicle_t vehicle);
+
 void write_vehicle(FILE *file, vehicle_t vehicle);
+
 void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header);
+
 vehicle_header_t read_vehicle_header(FILE *file);
-vehicle_t read_vehicle(FILE *file, int rnn);
-vehicle_header_t create_vehicle_header (char line[]);
+
+vehicle_t read_vehicle(FILE *file, int offset);
+
+vehicle_header_t create_vehicle_header(char line[]);
+
 #endif //T1_VEHICLE_H

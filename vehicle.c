@@ -41,7 +41,7 @@ vehicle_header_t create_vehicle_header(char line[]) {
 
 void read_vehicles_csv(vehicle_file_t *vehicle_file) {
   char line[200];
-  FILE *file = open_file(FILENAME_CSV, "r");
+  FILE *file = open_file(VEHICLE_FILENAME_CSV, "r");
   fgets(line, 200, file); // read the header
   vehicle_file->vehicle_header = create_vehicle_header(line);
 
@@ -58,8 +58,9 @@ void read_vehicles_csv(vehicle_file_t *vehicle_file) {
 }
 
 void print_vehicle(vehicle_t vehicle) {
-  printf("%s %s %d %d %s %s %d %d %d %d\n\n", vehicle.prefix, vehicle.date, vehicle.seats, vehicle.line_code,
-         vehicle.model, vehicle.category, vehicle.size_model, vehicle.size_category, vehicle.size, vehicle.removed);
+  printf("%d %d %s %s %d %d %d %s %d %s\n\n", vehicle.removed, vehicle.size, vehicle.prefix, vehicle.date,
+         vehicle.seats, vehicle.line_code,
+         vehicle.size_model, vehicle.model, vehicle.size_category, vehicle.category);
 }
 
 
@@ -76,18 +77,18 @@ void write_vehicle(FILE *file, vehicle_t vehicle) {
   fwrite(&vehicle.category, sizeof(char), strlen(vehicle.category), file);
 }
 
-vehicle_t read_vehicle(FILE *file, int rnn) {
+vehicle_t read_vehicle(FILE *file, int offset) {
   vehicle_t new_vehicle;
-  fread(&new_vehicle.removed, 1, 1, file);
-  fread(&new_vehicle.size, sizeof(int), 1, file);
-  fread(&new_vehicle.prefix, sizeof(char), 5, file);
-  fread(&new_vehicle.date, sizeof(char), 10, file);
-  fread(&new_vehicle.seats, sizeof(int), 1, file);
-  fread(&new_vehicle.line_code, sizeof(int), 1, file);
-  fread(&new_vehicle.size_model, sizeof(int), 1, file);
-  fread(&new_vehicle.model, sizeof(char), new_vehicle.size_model, file);
-  fread(&new_vehicle.size_category, sizeof(int), 1, file);
-  fread(&new_vehicle.category, sizeof(char), new_vehicle.size_category, file);
+  fread(&new_vehicle.removed, 1, offset + 1, file);
+  fread(&new_vehicle.size, sizeof(int), offset + 1, file);
+  fread(&new_vehicle.prefix, sizeof(char), offset + 5, file);
+  fread(&new_vehicle.date, sizeof(char), offset + 10, file);
+  fread(&new_vehicle.seats, sizeof(int), offset + 1, file);
+  fread(&new_vehicle.line_code, sizeof(int), offset + 1, file);
+  fread(&new_vehicle.size_model, sizeof(int), offset + 1, file);
+  fread(&new_vehicle.model, sizeof(char), offset + new_vehicle.size_model, file);
+  fread(&new_vehicle.size_category, sizeof(int), offset + 1, file);
+  fread(&new_vehicle.category, sizeof(char), offset + new_vehicle.size_category, file);
   return new_vehicle;
 }
 

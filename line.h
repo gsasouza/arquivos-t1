@@ -7,6 +7,10 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include "helpers.h"
+
+#define LINE_FILENAME_CSV "linha.csv"
 
 typedef struct line_header {
   bool status;
@@ -16,14 +20,14 @@ typedef struct line_header {
   char code_description[16];
   char card_description[14];
   char name_description[14];
-  char color_description[25];
+  char color_description[26];
 } line_header_t;
 
 typedef struct line {
   int line_code;
   char name[100];
   char color[100];
-  bool accept_card;
+  char accept_card[2];
   bool removed;
   int size;
   int size_name;
@@ -37,6 +41,14 @@ typedef struct line_file {
 
 void write_line_header(FILE *file, line_header_t line_header);
 
+void write_line(FILE *file, line_t line);
+
 line_header_t read_line_header(FILE *file);
+
+line_t read_line(FILE *file, int offset);
+
+void read_lines_csv(line_file_t *line_file);
+
+void print_line(line_t line);
 
 #endif //T1_LINE_H
