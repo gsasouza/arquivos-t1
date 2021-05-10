@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include "vehicle.h"
+#include "line.h"
 
 void parse_input();
 

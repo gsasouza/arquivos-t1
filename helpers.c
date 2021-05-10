@@ -22,6 +22,36 @@ FILE *open_file(char filename[], char mode[]) {
   return file;
 }
 
+char *format_print_null(char value[]) {
+  if (strcmp(value, "NULO") == 0) return NULL_MESSAGE;
+  return value;
+}
+
+char *format_print_null_int(int value) {
+  char *buffer = malloc(sizeof(int));
+  if (value == -1) return NULL_MESSAGE;
+  sprintf(buffer, "%d", value);
+  return buffer;
+}
+
+
+
+char *format_print_date(char date[]) {
+  char *buffer = malloc(sizeof(char) * 100);
+  char *months[] = {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
+                    "novembro", "dezembro"};
+
+  if (strcmp(date, "NULO") == 0) return format_print_null(date);
+
+  int year = (int) strtod(strsep(&date, "-"), NULL);
+  int month = (int) strtod(strsep(&date, "-"), NULL);
+  int day = (int) strtod(strsep(&date, "-"), NULL);
+  sprintf(buffer, "%d de %s de %d", day, months[month - 1], year);
+  return buffer;
+}
+
+
+
 void binarioNaTela(char *nomeArquivoBinario) { /* Você não precisa entender o código dessa função. */
 
   /* Use essa função para comparação no run.codes. Lembre-se de ter fechado (fclose) o arquivo anteriormente.

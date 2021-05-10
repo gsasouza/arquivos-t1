@@ -21,8 +21,8 @@ void full_test_vehicle() {
 
 void full_test_line() {
   line_file_t line_file, bin_file;
-  read_lines_csv(&line_file);
-  FILE *lines_bin = open_file(VEHICLE_FILENAME_BIN, "w+");
+  read_lines_csv(&line_file, LINE_FILENAME_CSV);
+  FILE *lines_bin = open_file(LINE_FILENAME_BIN, "w+");
   write_line_header(lines_bin, line_file.line_header);
   for (int i = 0; i < line_file.line_header.count; i++) {
     write_line(lines_bin, line_file.data[i]);

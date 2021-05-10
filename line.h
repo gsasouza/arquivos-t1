@@ -11,6 +11,7 @@
 #include "helpers.h"
 
 #define LINE_FILENAME_CSV "linha.csv"
+#define LINE_FILENAME_BIN "linha.bin"
 
 typedef struct line_header {
   bool status;
@@ -47,7 +48,7 @@ line_header_t read_line_header(FILE *file);
 
 line_t read_line(FILE *file, int offset);
 
-void read_lines_csv(line_file_t *line_file);
+void read_lines_csv(line_file_t *line_file, char filename[]);
 
 void print_line(line_t line);
 

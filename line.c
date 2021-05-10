@@ -4,9 +4,17 @@
 
 #include "line.h"
 
+char *format_accept_card(char accepted_card) {
+  if (accepted_card == 'S') return "PAGAMENTO  SOMENTE  COM  CARTAO  SEM  PRESENCA  DE COBRADOR";
+  if (accepted_card == 'N') return "PAGAMENTO EM CARTAO E DINHEIRO";
+  return "PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA";
+}
+
 void print_line(line_t line) {
-  printf("%d %d %d %s %d %s %d %s\n\n", line.removed, line.size, line.line_code, line.accept_card, line.size_name,
-         line.name, line.size_color, line.color);
+  printf("Codigo da linha: %d\n", line.line_code);
+  printf("Nome da linha: %s\n", line.name);
+  printf("Cor que descreve a linha: %s\n", line.color);
+  printf("Aceita cartao: %s\n\n", format_accept_card(line.accept_card[0]));
 }
 
 line_header_t create_line_header(char line[]) {
@@ -40,7 +48,6 @@ line_t create_line(char line[]) {
   line_t new_line;
   char *line_code_str = strsep(&line, ",");
   new_line.line_code = (int) strtod(line_code_str, NULL);
-//  new_line.accept_card = strsep(&line, ",");
   strcpy(new_line.accept_card, strsep(&line, ","));
   strcpy(new_line.name, strsep(&line, ","));
   strcpy(new_line.color, strsep(&line, ","));
@@ -91,9 +98,9 @@ void write_line(FILE *file, line_t line) {
   fwrite(&line.color, sizeof(char), line.size_name, file);
 }
 
-void read_lines_csv(line_file_t *line_file) {
+void read_lines_csv(line_file_t *line_file, char filename[]) {
   char line[200];
-  FILE *file = open_file(LINE_FILENAME_CSV, "r");
+  FILE *file = open_file(filename, "r");
   fgets(line, 200, file); // read the header
   line_file->line_header = create_line_header(line);
 
