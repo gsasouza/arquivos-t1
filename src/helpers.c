@@ -16,7 +16,7 @@ char *add_empty_padding(char *str, int size) {
 FILE *open_file(char filename[], char mode[]) {
   FILE *file = fopen(filename, mode);
   if (!file) {
-    printf("Error opening file");
+    printf(ERROR_MESSAGE);
     exit(1);
   }
   return file;

@@ -76,7 +76,7 @@ void parse_input() {
       select_from_lines(filename_in);
       return;
     default:
-      printf("Falha no processamentodo arquivo.");
+      printf(ERROR_MESSAGE);
       return ;
   }
 }
