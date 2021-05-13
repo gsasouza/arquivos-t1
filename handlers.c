@@ -5,17 +5,30 @@
 #include "handlers.h"
 
 void create_table_vehicle(char filename_csv[], char filename_bin[]) {
-  vehicle_file_t csv_file;
-  read_vehicles_csv(&csv_file, filename_csv);
+  char buffer[200];
   FILE *bin_file = open_file(filename_bin, "w+");
-  write_vehicle_header(bin_file, csv_file.vehicle_header);
-  for (int i = 0; i < csv_file.vehicle_header.count + csv_file.vehicle_header.count_removed; i++) {
-    write_vehicle(bin_file, csv_file.data[i]);
+  FILE *csv_file = open_file(filename_csv, "r");
+
+  // Handle header
+  fgets(buffer, 200, csv_file);
+  vehicle_header_t header = read_vehicle_header_from_csv(buffer);
+  write_vehicle_header(bin_file, header);
+
+  // Handle data
+  while (fgets(buffer, 200, csv_file) != NULL) {
+    vehicle_t new_vehicle = read_vehicle_from_csv(buffer);
+    write_vehicle(bin_file, new_vehicle);
+    update_header(&header, &new_vehicle);
   }
+
+  // Update header
   fseek(bin_file, 0, SEEK_SET);
-  csv_file.vehicle_header.status = '1';
-  write_vehicle_header(bin_file, csv_file.vehicle_header);
+  header.status = '1';
+  header.next_reg_byte = 55415;
+
+  write_vehicle_header(bin_file, header);
   fclose(bin_file);
+  fclose(csv_file);
 }
 
 void create_table_line(char filename_csv[], char filename_bin[]) {

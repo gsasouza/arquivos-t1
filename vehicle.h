@@ -37,7 +37,7 @@ typedef struct vehicle_header {
   char seats_description[43];
   char line_description[27];
   char model_description[18];
-  char category_description[22];
+  char category_description[21];
 } vehicle_header_t;
 
 typedef struct vehicle_file {
@@ -57,6 +57,10 @@ vehicle_header_t read_vehicle_header(FILE *file);
 
 vehicle_t read_vehicle(FILE *file, int offset);
 
-vehicle_header_t create_vehicle_header(char line[]);
+vehicle_header_t read_vehicle_header_from_csv(char line[]);
+
+vehicle_t read_vehicle_from_csv(char line[]);
+
+void update_header(vehicle_header_t *header, vehicle_t *vehicle);
 
 #endif //T1_VEHICLE_H

@@ -4,58 +4,44 @@
 
 #include "vehicle.h"
 
-vehicle_t create_vehicle(char line[]) {
-  vehicle_t new_vehicle;
-  strcpy(new_vehicle.prefix, strsep(&line, ","));
-  strcpy(new_vehicle.date, strsep(&line, ","));
-  new_vehicle.seats = (int) strtod(strsep(&line, ","), NULL);
-  new_vehicle.line_code = (int) strtod(strsep(&line, ","), NULL);
-  strcpy(new_vehicle.model, strsep(&line, ","));
-  strcpy(new_vehicle.category, strsep(&line, ","));
-  new_vehicle.category[strlen(new_vehicle.category) - 1] = '\0';
-  new_vehicle.size_model = calculate_maybe_null_size(new_vehicle.model);
-  new_vehicle.size_category = calculate_maybe_null_size(new_vehicle.category);
-  if (new_vehicle.prefix[0] == '*') {
-    new_vehicle.removed = '1';
-    memmove(new_vehicle.prefix, new_vehicle.prefix + 1, strlen(new_vehicle.prefix));
-  } else new_vehicle.removed = '0';
-  new_vehicle.size = 31 + new_vehicle.size_model + new_vehicle.size_category;
-  return new_vehicle;
+int calculate_vehicle_size(vehicle_t *vehicle) {
+  return vehicle->size = 31 + vehicle->size_model + vehicle->size_category;
 }
 
-vehicle_header_t create_vehicle_header(char line[]) {
+vehicle_t read_vehicle_from_csv(char line[]) {
+  vehicle_t *new_vehicle = malloc(sizeof(vehicle_t));
+  strcpy(new_vehicle->prefix, add_str_end(strsep(&line, ",")));
+  strcpy(new_vehicle->date, add_str_end(format_csv_maybe_empty_str(strsep(&line, ","))));
+  new_vehicle->seats = (int) strtod(strsep(&line, ","), NULL);
+  new_vehicle->line_code = format_csv_maybe_empty_int(strsep(&line, ","));
+  strcpy(new_vehicle->model, format_csv_maybe_empty_str(strsep(&line, ",")));
+  strcpy(new_vehicle->category, format_csv_maybe_empty_str(format_csv_last_field(strsep(&line, ","))));
+  new_vehicle->size_model = calculate_maybe_null_size(new_vehicle->model);
+  new_vehicle->size_category = calculate_maybe_null_size(new_vehicle->category);
+  new_vehicle->size = calculate_vehicle_size(new_vehicle);
+  new_vehicle->removed = format_csv_maybe_removed_str(new_vehicle->prefix);
+  return *new_vehicle;
+}
+
+vehicle_header_t read_vehicle_header_from_csv(char line[]) {
   vehicle_header_t new_header;
   strcpy(new_header.prefix_description, strsep(&line, ","));
   strcpy(new_header.date_description, strsep(&line, ","));
   strcpy(new_header.seats_description, strsep(&line, ","));
   strcpy(new_header.line_description, strsep(&line, ","));
   strcpy(new_header.model_description, strsep(&line, ","));
-  strcpy(new_header.category_description, strsep(&line, ","));
-  new_header.category_description[strlen(new_header.category_description) - 1] = '\0';
+  strcpy(new_header.category_description, format_csv_last_field(strsep(&line, ",")));
   new_header.status = '0';
   new_header.count = 0;
   new_header.count_removed = 0;
-  new_header.next_reg_byte = 0;
+  new_header.next_reg_byte = 175;
   return new_header;
 }
 
-void read_vehicles_csv(vehicle_file_t *vehicle_file, char filename[]) {
-  char line[200];
-  FILE *file = open_file(filename, "r");
-  fgets(line, 200, file); // read the header
-  vehicle_file->vehicle_header = create_vehicle_header(line);
-
-  while (fgets(line, 200, file) != NULL) {
-    vehicle_t new_vehicle = create_vehicle(line);
-    vehicle_file->data[vehicle_file->vehicle_header.count + vehicle_file->vehicle_header.count_removed] = new_vehicle;
-    vehicle_file->vehicle_header.next_reg_byte =
-      vehicle_file->vehicle_header.next_reg_byte + new_vehicle.size;
-    if (new_vehicle.removed == '0')
-      vehicle_file->vehicle_header.count_removed = vehicle_file->vehicle_header.count_removed + 1;
-    else vehicle_file->vehicle_header.count = vehicle_file->vehicle_header.count + 1;
-
-  }
-  fclose(file);
+void update_header(vehicle_header_t *header, vehicle_t *vehicle) {
+  header->next_reg_byte = header->next_reg_byte + vehicle->size;
+  if (vehicle->removed == '1') header->count_removed = header->count_removed + 1;
+  else header->count = header->count + 1;
 }
 
 void print_vehicle(vehicle_t vehicle) {
@@ -84,6 +70,7 @@ void write_vehicle(FILE *file, vehicle_t vehicle) {
 void add_end_to_vehicle_fields(vehicle_t *vehicle) {
   vehicle->model[vehicle->size_model] = '\0';
   vehicle->category[vehicle->size_category] = '\0';
+  vehicle->date[10] = '\0';
   if (vehicle->date[0] == '@') vehicle->date[0] = '\0';
 }
 

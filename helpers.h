@@ -27,4 +27,14 @@ char *format_print_null_int(int value);
 
 size_t calculate_maybe_null_size(char str[]);
 
+int format_csv_maybe_empty_int(char *str);
+
+char *format_csv_maybe_empty_str(char *str);
+
+char format_csv_maybe_removed_str(char *str);
+
+char *format_csv_last_field(char *str);
+
+char *add_str_end(char *str);
+
 #endif //T1_HELPERS_H

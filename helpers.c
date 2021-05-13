@@ -6,11 +6,8 @@
 
 char *add_empty_padding(char *str, int size) {
   int start = (int) strlen(str);
-  if (strcmp(str, "NULO") == 0) start = 0;
-
-//  str[start] = '\0';
-
-  for (int i = start; i < size; i++) {
+  str[start] = '\0';
+  for (int i = start + 1; i < size; i++) {
     str[i] = '@';
   }
   return str;
@@ -28,6 +25,36 @@ FILE *open_file(char filename[], char mode[]) {
 char *format_print_null(char value[]) {
   if ((strcmp(value, "NULO") == 0) || (strcmp(value, "") == 0)) return NULL_MESSAGE;
   return value;
+}
+
+int format_csv_maybe_empty_int(char *str) {
+  if (strcmp(str, "NULO") == 0) return -1;
+  return (int) strtod(str, NULL);
+}
+
+char *format_csv_maybe_empty_str(char *str) {
+  if (strcmp(str, "NULO") == 0) return "";
+  return str;
+}
+
+char format_csv_maybe_removed_str(char *str) {
+  if (str[0] == '*') {
+    memmove(str, str + 1, 5);
+    str[5] = '\0';
+    return '1';
+  }
+  return '0';
+}
+
+char *format_csv_last_field(char *str) {
+  str[strlen(str) - 1] = '\0';
+  return str;
+}
+
+char *add_str_end(char *str) {
+  if (strcmp(str, "") == 0) return str;
+  str[strlen(str)] = '\0';
+  return str;
 }
 
 char *format_print_null_int(int value) {
