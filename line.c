@@ -4,6 +4,10 @@
 
 #include "line.h"
 
+int calculate_line_size(line_t *line) {
+  return 13 + line->size_color + line->size_name;
+}
+
 char *format_accept_card(char accepted_card) {
   if (accepted_card == 'S') return "PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR";
   if (accepted_card == 'N') return "PAGAMENTO EM CARTAO E DINHEIRO";
@@ -17,60 +21,61 @@ void print_line(line_t line) {
   printf("Aceita cartao: %s\n\n", format_accept_card(line.accept_card[0]));
 }
 
-line_header_t create_line_header(char line[]) {
+line_header_t read_line_header_from_csv(char line[]) {
   line_header_t new_header;
   strcpy(new_header.code_description, strsep(&line, ","));
   strcpy(new_header.card_description, strsep(&line, ","));
   strcpy(new_header.name_description, strsep(&line, ","));
-  strcpy(new_header.color_description, strsep(&line, ","));
-  new_header.color_description[strlen(new_header.color_description) - 1] = '\0';
-  new_header.status = false;
+  strcpy(new_header.color_description, format_csv_last_field(strsep(&line, ",")));
+  new_header.status = '0';
   new_header.count = 0;
   new_header.count_removed = 0;
   new_header.next_reg_byte = 0;
   return new_header;
 }
 
+void update_line_header(line_header_t *header, line_t *line) {
+  if (line->removed == '1') header->count_removed = header->count_removed + 1;
+  else header->count = header->count + 1;
+}
+
 line_header_t read_line_header(FILE *file) {
   line_header_t new_header;
-  fread(&new_header.status, sizeof(char), 1, file);
-  fread(&new_header.next_reg_byte, sizeof(int), 2, file);
-  fread(&new_header.count, sizeof(int), 1, file);
-  fread(&new_header.count_removed, sizeof(int), 1, file);
-  fread(&new_header.code_description, sizeof(char), 15, file);
-  fread(&new_header.card_description, sizeof(char), 13, file);
-  fread(&new_header.name_description, sizeof(char), 13, file);
-  fread(&new_header.color_description, sizeof(char), 24, file);
+  fread(&new_header.status, 1, 1, file);
+  fread(&new_header.next_reg_byte, 8, 1, file);
+  fread(&new_header.count, 4, 1, file);
+  fread(&new_header.count_removed, 4, 1, file);
+  fread(&new_header.code_description, 15, 1, file);
+  fread(&new_header.card_description, 13, 1, file);
+  fread(&new_header.name_description, 13, 1, file);
+  fread(&new_header.color_description, 24, 1, file);
   return new_header;
 }
 
-line_t create_line(char line[]) {
-  line_t new_line;
+line_t read_line_from_csv(char line[]) {
+  line_t *new_line = malloc(sizeof(line_t));
   char *line_code_str = strsep(&line, ",");
-  new_line.line_code = (int) strtod(line_code_str, NULL);
-  strcpy(new_line.accept_card, strsep(&line, ","));
-  strcpy(new_line.name, strsep(&line, ","));
-  strcpy(new_line.color, strsep(&line, ","));
-  new_line.color[strlen(new_line.color) - 1] = '\0';
-  new_line.size_name = (int) strlen(new_line.name);
-  new_line.size_color = (int) strlen(new_line.color);
-  if (line_code_str[0] == '*') {
-    new_line.removed = true;
-  } else new_line.removed = false;
-  new_line.size = 18 + new_line.size_color + new_line.size_name;
-  return new_line;
+  strcpy(new_line->accept_card, strsep(&line, ","));
+  strcpy(new_line->name, add_str_end(format_csv_maybe_empty_str(strsep(&line, ","))));
+  strcpy(new_line->color, format_csv_maybe_empty_str(format_csv_last_field(strsep(&line, ","))));
+  new_line->size_name = calculate_maybe_null_size(new_line->name);
+  new_line->size_color = calculate_maybe_null_size(new_line->color);
+  new_line->removed = format_csv_maybe_removed_str(line_code_str);
+  new_line->line_code = (int) strtod(line_code_str, NULL);
+  new_line->size = calculate_line_size(new_line);
+  return *new_line;
 }
 
 
 void write_line_header(FILE *file, line_header_t line_header) {
-  fwrite(&line_header.status, sizeof(char), 1, file);
-  fwrite(&line_header.next_reg_byte, sizeof(int), 2, file);
-  fwrite(&line_header.count, sizeof(int), 1, file);
-  fwrite(&line_header.count_removed, sizeof(int), 1, file);
-  fwrite(&line_header.code_description, sizeof(char), 15, file);
-  fwrite(&line_header.card_description, sizeof(char), 13, file);
-  fwrite(&line_header.name_description, sizeof(char), 13, file);
-  fwrite(&line_header.color_description, sizeof(char), 24, file);
+  fwrite(&line_header.status, 1, 1, file);
+  fwrite(&line_header.next_reg_byte, 8, 1, file);
+  fwrite(&line_header.count, 4, 1, file);
+  fwrite(&line_header.count_removed, 4, 1, file);
+  fwrite(&line_header.code_description, 15, 1, file);
+  fwrite(&line_header.card_description, 13, 1, file);
+  fwrite(&line_header.name_description, 13, 1, file);
+  fwrite(&line_header.color_description, 24, 1, file);
 }
 
 void add_end_to_fields(line_t *line) {
@@ -94,32 +99,12 @@ line_t read_line(FILE *file, int offset) {
 
 
 void write_line(FILE *file, line_t line) {
-  fwrite(&line.removed, sizeof(char), 1, file);
-  fwrite(&line.size, sizeof(int), 1, file);
-  fwrite(&line.line_code, sizeof(int), 1, file);
-  fwrite(&line.accept_card, sizeof(char), 1, file);
-  fwrite(&line.size_name, sizeof(int), 1, file);
-  fwrite(&line.name, sizeof(char), line.size_name, file);
-  fwrite(&line.size_color, sizeof(int), 1, file);
-  fwrite(&line.color, sizeof(char), line.size_name, file);
-}
-
-void read_lines_csv(line_file_t *line_file, char filename[]) {
-  char line[200];
-  FILE *file = open_file(filename, "r");
-  fgets(line, 200, file); // read the header
-  line_file->line_header = create_line_header(line);
-
-  while (fgets(line, 200, file) != NULL) {
-    line_t new_line = create_line(line);
-    line_file->data[line_file->line_header.count] = new_line;
-    line_file->line_header.next_reg_byte =
-      line_file->line_header.next_reg_byte + new_line.size;
-
-    if (new_line.removed)
-      line_file->line_header.count_removed = line_file->line_header.count_removed + 1;
-    else
-      line_file->line_header.count = line_file->line_header.count + 1;
-  }
-  fclose(file);
+  fwrite(invert_remove(line.removed), 1, 1, file);
+  fwrite(&line.size, 4, 1, file);
+  fwrite(&line.line_code, 4, 1, file);
+  fwrite(&line.accept_card, 1, 1, file);
+  fwrite(&line.size_name, 4, 1, file);
+  fwrite(&line.name, 1, line.size_name, file);
+  fwrite(&line.size_color, 4, 1, file);
+  fwrite(&line.color, 1, line.size_color, file);
 }

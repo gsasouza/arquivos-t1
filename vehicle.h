@@ -29,7 +29,7 @@ typedef struct vehicle {
 
 typedef struct vehicle_header {
   char status;
-  int next_reg_byte;
+  long next_reg_byte;
   int count;
   int count_removed;
   char prefix_description[19];

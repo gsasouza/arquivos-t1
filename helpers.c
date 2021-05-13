@@ -84,6 +84,11 @@ char *format_print_date(char date[]) {
   return buffer;
 }
 
+char *invert_remove(char removed) {
+  if (removed == '0') return "1";
+  return "0";
+}
+
 
 void binarioNaTela(char *nomeArquivoBinario) { /* Você não precisa entender o código dessa função. */
 

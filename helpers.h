@@ -37,4 +37,6 @@ char *format_csv_last_field(char *str);
 
 char *add_str_end(char *str);
 
+char *invert_remove(char removed);
+
 #endif //T1_HELPERS_H

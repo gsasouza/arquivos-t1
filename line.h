@@ -14,8 +14,8 @@
 #define LINE_FILENAME_BIN "linha.bin"
 
 typedef struct line_header {
-  bool status;
-  int next_reg_byte;
+  char status;
+  long next_reg_byte;
   int count;
   int count_removed;
   char code_description[16];
@@ -48,7 +48,11 @@ line_header_t read_line_header(FILE *file);
 
 line_t read_line(FILE *file, int offset);
 
-void read_lines_csv(line_file_t *line_file, char filename[]);
+line_header_t read_line_header_from_csv(char line[]);
+
+line_t read_line_from_csv(char line[]);
+
+void update_line_header(line_header_t *header, line_t *line);
 
 void print_line(line_t line);
 

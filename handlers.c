@@ -22,27 +22,40 @@ void create_table_vehicle(char filename_csv[], char filename_bin[]) {
   }
 
   // Update header
-  fseek(bin_file, 0, SEEK_SET);
   header.status = '1';
-  header.next_reg_byte = 55415;
-
+  header.next_reg_byte = ftell(bin_file);
+  fseek(bin_file, 0, SEEK_SET);
   write_vehicle_header(bin_file, header);
+
   fclose(bin_file);
   fclose(csv_file);
 }
 
 void create_table_line(char filename_csv[], char filename_bin[]) {
-  line_file_t csv_file;
-  read_lines_csv(&csv_file, filename_csv);
-  FILE *bin_file = open_file(filename_bin, "wb");
-  write_line_header(bin_file, csv_file.line_header);
-  for (int i = 0; i < csv_file.line_header.count; i++) {
-    write_line(bin_file, csv_file.data[i]);
+  char buffer[200];
+  FILE *bin_file = open_file(filename_bin, "w+");
+  FILE *csv_file = open_file(filename_csv, "r");
+
+  // Handle header
+  fgets(buffer, 200, csv_file);
+  line_header_t header = read_line_header_from_csv(buffer);
+  write_line_header(bin_file, header);
+
+  // Handle data
+  while (fgets(buffer, 200, csv_file) != NULL) {
+    line_t new_line = read_line_from_csv(buffer);
+    write_line(bin_file, new_line);
+    update_line_header(&header, &new_line);
   }
+
+  // Update header
+  header.status = '1';
+  header.next_reg_byte = ftell(bin_file);
   fseek(bin_file, 0, SEEK_SET);
-  csv_file.line_header.status = 1;
-  write_line_header(bin_file, csv_file.line_header);
+  write_line_header(bin_file, header);
+
   fclose(bin_file);
+  fclose(csv_file);
 }
 
 void select_from_vehicles(char filename[]) {

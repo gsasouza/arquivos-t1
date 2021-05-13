@@ -34,12 +34,11 @@ vehicle_header_t read_vehicle_header_from_csv(char line[]) {
   new_header.status = '0';
   new_header.count = 0;
   new_header.count_removed = 0;
-  new_header.next_reg_byte = 175;
+  new_header.next_reg_byte = 0;
   return new_header;
 }
 
 void update_header(vehicle_header_t *header, vehicle_t *vehicle) {
-  header->next_reg_byte = header->next_reg_byte + vehicle->size;
   if (vehicle->removed == '1') header->count_removed = header->count_removed + 1;
   else header->count = header->count + 1;
 }
@@ -52,10 +51,7 @@ void print_vehicle(vehicle_t vehicle) {
   printf("Quantidade de lugares sentados disponiveis: %s\n\n", format_print_null_int(vehicle.seats));
 }
 
-char *invert_remove(char removed) {
-  if (removed == '0') return "1";
-  return "0";
-}
+
 
 void write_vehicle(FILE *file, vehicle_t vehicle) {
   fwrite(invert_remove(vehicle.removed), 1, 1, file);
