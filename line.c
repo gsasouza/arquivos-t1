@@ -5,15 +5,15 @@
 #include "line.h"
 
 char *format_accept_card(char accepted_card) {
-  if (accepted_card == 'S') return "PAGAMENTO  SOMENTE  COM  CARTAO  SEM  PRESENCA  DE COBRADOR";
+  if (accepted_card == 'S') return "PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR";
   if (accepted_card == 'N') return "PAGAMENTO EM CARTAO E DINHEIRO";
   return "PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA";
 }
 
 void print_line(line_t line) {
-  printf("Codigo da linha: %d\n", line.line_code);
-  printf("Nome da linha: %s\n", line.name);
-  printf("Cor que descreve a linha: %s\n", line.color);
+  printf("Codigo da linha: %s\n", format_print_null_int(line.line_code));
+  printf("Nome da linha: %s\n", format_print_null(line.name));
+  printf("Cor que descreve a linha: %s\n", format_print_null(line.color));
   printf("Aceita cartao: %s\n\n", format_accept_card(line.accept_card[0]));
 }
 
@@ -73,17 +73,23 @@ void write_line_header(FILE *file, line_header_t line_header) {
   fwrite(&line_header.color_description, sizeof(char), 24, file);
 }
 
+void add_end_to_fields(line_t *line) {
+  line->name[line->size_name] = '\0';
+  line->color[line->size_color] = '\0';
+}
+
 line_t read_line(FILE *file, int offset) {
-  line_t new_line;
-  fread(&new_line.removed, sizeof(char), offset + 1, file);
-  fread(&new_line.size, sizeof(int), offset + 1, file);
-  fread(&new_line.line_code, sizeof(int), offset + 1, file);
-  fread(&new_line.accept_card, sizeof(char), offset + 1, file);
-  fread(&new_line.size_name, sizeof(int), offset + 1, file);
-  fread(&new_line.name, sizeof(char), offset + new_line.size_name, file);
-  fread(&new_line.size_color, sizeof(int), offset + 1, file);
-  fread(&new_line.color, sizeof(char), offset + new_line.size_name, file);
-  return new_line;
+  line_t *new_line = malloc(sizeof(line_t));
+  fread(&new_line->removed, 1, 1, file);
+  fread(&new_line->size, 4, 1, file);
+  fread(&new_line->line_code, 4, 1, file);
+  fread(&new_line->accept_card, 1, 1, file);
+  fread(&new_line->size_name, 4, 1, file);
+  fread(&new_line->name, 1, new_line->size_name, file);
+  fread(&new_line->size_color, 4, 1, file);
+  fread(&new_line->color, 1, new_line->size_color, file);
+  add_end_to_fields(new_line);
+  return *new_line;
 }
 
 
@@ -109,9 +115,11 @@ void read_lines_csv(line_file_t *line_file, char filename[]) {
     line_file->data[line_file->line_header.count] = new_line;
     line_file->line_header.next_reg_byte =
       line_file->line_header.next_reg_byte + new_line.size;
-    line_file->line_header.count = line_file->line_header.count + 1;
+
     if (new_line.removed)
       line_file->line_header.count_removed = line_file->line_header.count_removed + 1;
+    else
+      line_file->line_header.count = line_file->line_header.count + 1;
   }
   fclose(file);
 }

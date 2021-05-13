@@ -21,14 +21,14 @@ typedef struct vehicle {
   int line_code;
   char model[100];
   char category[100];
-  bool removed;
+  char removed;
   int size;
   int size_model;
   int size_category;
 } vehicle_t;
 
 typedef struct vehicle_header {
-  bool status;
+  char status;
   int next_reg_byte;
   int count;
   int count_removed;

@@ -10,7 +10,8 @@
 #include <string.h>
 
 #define NULL_MESSAGE "campo com valor nulo"
-#define ERROR_MESSAGE "Falha no processamentodo arquivo.\n"
+#define ERROR_MESSAGE "Falha no processamento do arquivo."
+#define EMPTY_MESSAGE "Registro inexistente."
 
 char *add_empty_padding(char *str, int size);
 

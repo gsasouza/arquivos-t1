@@ -29,7 +29,7 @@ typedef struct line {
   char name[100];
   char color[100];
   char accept_card[2];
-  bool removed;
+  char removed;
   int size;
   int size_name;
   int size_color;
