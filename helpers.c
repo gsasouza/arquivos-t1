@@ -1,7 +1,3 @@
-//
-// Created by Gabriel Souza on 06/05/21.
-//
-
 #include "helpers.h"
 
 char *add_empty_padding(char *str, int size) {

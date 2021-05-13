@@ -1,7 +1,3 @@
-//
-// Created by Gabriel Souza on 08/05/21.
-//
-
 #include "handlers.h"
 
 void create_table_vehicle(char filename_csv[], char filename_bin[]) {
@@ -59,34 +55,33 @@ void create_table_line(char filename_csv[], char filename_bin[]) {
 }
 
 void select_from_vehicles(char filename[]) {
-  vehicle_file_t bin_file;
-  FILE *vehicles_bin = open_file(filename, "rb");
-  bin_file.vehicle_header = read_vehicle_header(vehicles_bin);
-  if (bin_file.vehicle_header.count == 0) {
+  vehicle_header_t header;
+  FILE *bin_file = open_file(filename, "rb");
+  header = read_vehicle_header(bin_file);
+  if (header.count == 0) {
     printf(EMPTY_MESSAGE);
     exit(0);
   }
-  for (int i = 0; i < bin_file.vehicle_header.count + bin_file.vehicle_header.count_removed; i++) {
-    bin_file.data[i] = read_vehicle(vehicles_bin, 0);
-    if (bin_file.data[i].removed != '0') print_vehicle(bin_file.data[i]);
+  for (int i = 0; i < header.count + header.count_removed; i++) {
+    vehicle_t vehicle = read_vehicle(bin_file, 0);
+    if (vehicle.removed != '0') print_vehicle(vehicle);
   }
-  fclose(vehicles_bin);
+  fclose(bin_file);
 }
 
 void select_from_lines(char filename[]) {
-  line_file_t bin_file;
-  FILE *lines_bin = open_file(filename, "rb");
-  bin_file.line_header = read_line_header(lines_bin);
-  if (bin_file.line_header.count == 0) {
+  line_header_t header;
+  FILE *bin_file = open_file(filename, "rb");
+  header = read_line_header(bin_file);
+  if (header.count == 0) {
     printf(EMPTY_MESSAGE);
     exit(0);
   }
-
-  for (int i = 0; i < bin_file.line_header.count + bin_file.line_header.count_removed; i++) {
-    bin_file.data[i] = read_line(lines_bin, 0);
-    if (bin_file.data[i].removed != '0') print_line(bin_file.data[i]);
+  for (int i = 0; i < header.count + header.count_removed; i++) {
+    line_t line = read_line(bin_file, 0);
+    if (line.removed != '0') print_line(line);
   }
-  fclose(lines_bin);
+  fclose(bin_file);
 }
 
 void parse_input() {

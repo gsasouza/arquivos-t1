@@ -1,7 +1,3 @@
-//
-// Created by Gabriel Souza on 07/05/21.
-//
-
 #include "line.h"
 
 int calculate_line_size(line_t *line) {

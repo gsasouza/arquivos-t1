@@ -1,6 +1,8 @@
-//
-// Created by Gabriel Souza on 07/05/21.
-//
+/*
+ * Responsible for line related functions and data structures like reading from csv,
+ * reading from binary and writing in binary
+ */
+
 
 #ifndef T1_LINE_H
 #define T1_LINE_H
@@ -9,9 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "helpers.h"
-
-#define LINE_FILENAME_CSV "linha.csv"
-#define LINE_FILENAME_BIN "linha.bin"
 
 typedef struct line_header {
   char status;
@@ -34,11 +33,6 @@ typedef struct line {
   int size_name;
   int size_color;
 } line_t;
-
-typedef struct line_file {
-  line_header_t line_header;
-  line_t data[1000];
-} line_file_t;
 
 void write_line_header(FILE *file, line_header_t line_header);
 

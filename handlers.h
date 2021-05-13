@@ -1,6 +1,7 @@
-//
-// Created by Gabriel Souza on 08/05/21.
-//
+/*
+ * Responsible for input handlers, it parses the input and call the functions related to vehicle and line
+ * to execute the feature
+ */
 
 #ifndef T1_HANDLERS_H
 #define T1_HANDLERS_H

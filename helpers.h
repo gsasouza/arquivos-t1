@@ -1,6 +1,6 @@
-//
-// Created by Gabriel Souza on 06/05/21.
-//
+/*
+ * Responsible for helpers like csv and bin formatters, default messages and pretty print formatters
+ */
 
 #ifndef T1_HELPERS_H
 #define T1_HELPERS_H

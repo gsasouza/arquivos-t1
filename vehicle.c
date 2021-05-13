@@ -1,7 +1,3 @@
-//
-// Created by Gabriel Souza on 06/05/21.
-//
-
 #include "vehicle.h"
 
 int calculate_vehicle_size(vehicle_t *vehicle) {
