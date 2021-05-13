@@ -52,9 +52,13 @@ void print_vehicle(vehicle_t vehicle) {
   printf("Quantidade de lugares sentados disponiveis: %s\n\n", format_print_null_int(vehicle.seats));
 }
 
+char *invert_remove(char removed) {
+  if (removed == '0') return "1";
+  return "0";
+}
 
 void write_vehicle(FILE *file, vehicle_t vehicle) {
-  fwrite(&vehicle.removed, 1, 1, file);
+  fwrite(invert_remove(vehicle.removed), 1, 1, file);
   fwrite(&vehicle.size, 4, 1, file);
   fwrite(add_empty_padding(vehicle.prefix, 5), 5, 1, file);
   fwrite(add_empty_padding(vehicle.date, 10), 10, 1, file);
