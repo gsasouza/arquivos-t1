@@ -25,4 +25,6 @@ char *format_print_null(char value[]);
 
 char *format_print_null_int(int value);
 
+size_t calculate_maybe_null_size(char str[]);
+
 #endif //T1_HELPERS_H

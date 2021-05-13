@@ -37,6 +37,11 @@ char *format_print_null_int(int value) {
   return buffer;
 }
 
+size_t calculate_maybe_null_size(char str[]) {
+  if (strcmp(str, "NULO") == 0) return 0;
+  return strlen(str);
+}
+
 
 char *format_print_date(char date[]) {
   char *buffer = malloc(sizeof(char) * 100);

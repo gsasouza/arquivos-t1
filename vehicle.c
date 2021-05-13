@@ -13,8 +13,8 @@ vehicle_t create_vehicle(char line[]) {
   strcpy(new_vehicle.model, strsep(&line, ","));
   strcpy(new_vehicle.category, strsep(&line, ","));
   new_vehicle.category[strlen(new_vehicle.category) - 1] = '\0';
-  new_vehicle.size_model = (int) strlen(new_vehicle.model);
-  new_vehicle.size_category = (int) strlen(new_vehicle.category);
+  new_vehicle.size_model = calculate_maybe_null_size(new_vehicle.model);
+  new_vehicle.size_category = calculate_maybe_null_size(new_vehicle.category);
   if (new_vehicle.prefix[0] == '*') {
     new_vehicle.removed = '1';
     memmove(new_vehicle.prefix, new_vehicle.prefix + 1, strlen(new_vehicle.prefix));
