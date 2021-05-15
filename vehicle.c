@@ -1,3 +1,5 @@
+//Yann Amado Nunes Costa nUSP: 10746943
+
 #include "vehicle.h"
 
 int calculate_vehicle_size(vehicle_t *vehicle) {

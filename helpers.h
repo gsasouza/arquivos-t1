@@ -1,3 +1,5 @@
+//Yann Amado Nunes Costa nUSP: 10746943
+
 /*
  * Responsible for helpers like csv and bin formatters, default messages and pretty print formatters
  */
@@ -39,4 +41,6 @@ char *add_str_end(char *str);
 
 char *invert_remove(char removed);
 
+void scan_quote_string(char *str);
+ 
 #endif //T1_HELPERS_H

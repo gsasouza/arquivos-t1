@@ -1,3 +1,5 @@
+//Yann Amado Nunes Costa nUSP: 10746943
+
 #include "line.h"
 
 int calculate_line_size(line_t *line) {
