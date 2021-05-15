@@ -84,9 +84,44 @@ void select_from_lines(char filename[]) {
   fclose(bin_file);
 }
 
+void find_from_vehicles(char filename[], char fieldname[], char value[]) {
+  vehicle_header_t header;
+  FILE *bin_file = open_file(filename, "rb");
+  header = read_vehicle_header(bin_file);
+  vehicle_t current_vehicle;
+  int n_found[] = {0,0};  //its used to know if it should print a vehicle
+  for(int i = 0; i < header.count; i++) {
+    current_vehicle = read_vehicle(bin_file, 0);
+    switch(fieldname[0]){
+      case 'p': //prefixo
+        if(strcmp(current_vehicle.prefix, value) == 0) n_found[0] += 1;
+        break;
+      case 'd': //data
+        if(strcmp(current_vehicle.date, value) == 0) n_found[0] += 1;
+        break;
+      case 'q': //quantidade de lugares
+        if(current_vehicle.seats == atoi(value)) n_found[0] += 1;
+        break;
+      case 'm': //modelo
+        if(strcmp(current_vehicle.model, value) == 0) n_found[0] += 1;
+        break;
+      case 'c': //categoria
+        if(strcmp(current_vehicle.category, value) == 0) n_found[0] += 1;
+        break;
+    }
+    if(n_found[0] > n_found[1]){  //if number of vehicles found now is greater than before
+      print_vehicle(current_vehicle);
+      n_found[1] = n_found[0];    //updates
+    }
+  }
+  if(n_found[0] == 0) //if it never found any vehicles that match
+    printf(EMPTY_MESSAGE);
+  fclose(bin_file);
+}
+
 void parse_input() {
   int option;
-  char filename_in[30], filename_out[30];
+  char filename_in[30], filename_out[30], fieldname[30], value[30];
   scanf("%d", &option);
   switch (option) {
     case 1:
@@ -104,6 +139,11 @@ void parse_input() {
     case 4:
       scanf("%s", filename_in);
       select_from_lines(filename_in);
+      return;
+    case 5:
+      scanf("%s %s", filename_in, fieldname);
+      scan_quote_string(value);
+      find_from_vehicles(filename_in, fieldname, value);
       return;
     default:
       printf(ERROR_MESSAGE);
