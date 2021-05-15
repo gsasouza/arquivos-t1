@@ -1,3 +1,5 @@
+//Yann Amado Nunes Costa nUSP: 10746943
+
 #include "handlers.h"
 
 void create_table_vehicle(char filename_csv[], char filename_bin[]) {
@@ -89,32 +91,34 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   FILE *bin_file = open_file(filename, "rb");
   header = read_vehicle_header(bin_file);
   vehicle_t current_vehicle;
-  int n_found[] = {0,0};  //its used to know if it should print a vehicle
+  int found = 0;  //its used to know if it should print a vehicle
+  int found_total = 0;  //if 
   for(int i = 0; i < header.count; i++) {
     current_vehicle = read_vehicle(bin_file, 0);
     switch(fieldname[0]){
       case 'p': //prefixo
-        if(strcmp(current_vehicle.prefix, value) == 0) n_found[0] += 1;
+        if(strcmp(current_vehicle.prefix, value) == 0) found = 1;
         break;
       case 'd': //data
-        if(strcmp(current_vehicle.date, value) == 0) n_found[0] += 1;
+        if(strcmp(current_vehicle.date, value) == 0) found = 1;
         break;
       case 'q': //quantidade de lugares
-        if(current_vehicle.seats == atoi(value)) n_found[0] += 1;
+        if(current_vehicle.seats == atoi(value)) found = 1;
         break;
       case 'm': //modelo
-        if(strcmp(current_vehicle.model, value) == 0) n_found[0] += 1;
+        if(strcmp(current_vehicle.model, value) == 0) found = 1;
         break;
       case 'c': //categoria
-        if(strcmp(current_vehicle.category, value) == 0) n_found[0] += 1;
+        if(strcmp(current_vehicle.category, value) == 0) found = 1;
         break;
     }
-    if(n_found[0] > n_found[1]){  //if number of vehicles found now is greater than before
+    if(found == 1){  //if found a match
       print_vehicle(current_vehicle);
-      n_found[1] = n_found[0];    //updates
+      found_total++;    //updates
+      found = 0;
     }
   }
-  if(n_found[0] == 0) //if it never found any vehicles that match
+  if(found_total == 0) //if it never found any vehicles that match
     printf(EMPTY_MESSAGE);
   fclose(bin_file);
 }
