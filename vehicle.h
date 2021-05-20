@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "helpers.h"
 
+
 typedef struct vehicle {
   char prefix[6];
   char date[11];
@@ -54,5 +55,9 @@ vehicle_header_t read_vehicle_header_from_csv(char line[]);
 vehicle_t read_vehicle_from_csv(char line[]);
 
 void update_header(vehicle_header_t *header, vehicle_t *vehicle);
+
+vehicle_t create_vehicle();
+
+int verify_vehicle_header_status(vehicle_header_t header);
 
 #endif //T1_VEHICLE_H

@@ -60,6 +60,10 @@ void select_from_vehicles(char filename[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_vehicle_header(bin_file);
+  if(verify_vehicle_header_status(header) == 0){ //if header is 0
+    fclose(bin_file);
+    return;
+  }
   if (header.count == 0) {
     printf(EMPTY_MESSAGE);
     exit(0);
@@ -75,6 +79,10 @@ void select_from_lines(char filename[]) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_line_header(bin_file);
+  if(verify_line_header_status(header) == 0){//if header is 0
+    fclose(bin_file);
+    return;
+  } 
   if (header.count == 0) {
     printf(EMPTY_MESSAGE);
     exit(0);
@@ -90,9 +98,13 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_vehicle_header(bin_file);
+  if(verify_vehicle_header_status(header) == 0){ //if header is 0
+    fclose(bin_file);
+    return;
+  }
   vehicle_t current_vehicle;
   int found = 0;  //its used to know if it should print a vehicle
-  int found_total = 0;  //if 
+  int found_total = 0;
   for(int i = 0; i < header.count; i++) {
     current_vehicle = read_vehicle(bin_file, 0);
     switch(fieldname[0]){
@@ -123,9 +135,38 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   fclose(bin_file);
 }
 
+void insert_on_vehicles(char filename[], int n){
+  vehicle_header_t header;
+  int n_removed = 0;
+  int n_inserted = 0;
+  FILE *bin_file = open_file(filename, "rb+");
+  header = read_vehicle_header(bin_file);
+  if(verify_vehicle_header_status(header) == 0){ //if header is 0
+    fclose(bin_file);
+    return;
+  }
+  vehicle_t current_vehicle;
+  fseek(bin_file, header.next_reg_byte, SEEK_SET); //offsets the file to where the new vehicle should be registered
+  for(int i = 0; i < n; i++){
+    current_vehicle = create_vehicle();
+    write_vehicle(bin_file, current_vehicle);
+    if(current_vehicle.prefix[0] == '*')  //if the removed token is present
+      n_removed++;
+    else
+      n_inserted++;
+    header.next_reg_byte += current_vehicle.size;
+  }
+  header.count += n_inserted;
+  header.count_removed += n_removed;
+  fseek(bin_file, 0, SEEK_SET); //offsets to the beginning of the file
+  write_vehicle_header(bin_file, header); //updates the header
+  fclose(bin_file);
+}
+
 void parse_input() {
-  int option;
-  char filename_in[30], filename_out[30], fieldname[30], value[30];
+  int option, n;
+  char filename_in[30], filename_out[30], fieldname[30];
+  char* value = NULL;
   scanf("%d", &option);
   switch (option) {
     case 1:
@@ -148,7 +189,12 @@ void parse_input() {
       scanf("%s %s", filename_in, fieldname);
       scan_quote_string(value);
       find_from_vehicles(filename_in, fieldname, value);
+      free(value);
       return;
+    case 7:
+      scanf("%s %d", filename_in, &n);
+      insert_on_vehicles(filename_in, n);
+      return  binarioNaTela(filename_in);
     default:
       printf(ERROR_MESSAGE);
       return ;

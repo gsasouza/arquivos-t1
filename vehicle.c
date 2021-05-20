@@ -116,3 +116,41 @@ void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header) {
   fwrite(&vehicle_header.model_description, 17, 1, file);
   fwrite(&vehicle_header.category_description, 20, 1, file);
 }
+
+int count_str(char str[]){
+  int letters = 0;
+  int i = 0;
+  while(str[i] != '\0'){
+    letters++;
+    i++;
+  }
+  return letters;
+}
+
+vehicle_t create_vehicle(){
+  int seats, line_code;
+  vehicle_t* new_vehicle = malloc(sizeof(vehicle_t));
+  scan_quote_string(new_vehicle->prefix);
+  scan_quote_string(new_vehicle->date);
+  scanf("%d %d", &seats, &line_code);
+  scan_quote_string(new_vehicle->model);
+  scan_quote_string(new_vehicle->category);
+  //if is nulo, the scan_quote will pass an empty string
+  if(strcmp(new_vehicle->date, "") == 0) add_empty_padding(new_vehicle->date, 11);
+
+  new_vehicle->seats = seats;
+  new_vehicle->line_code = line_code;
+  new_vehicle->removed = '1';
+  new_vehicle->size_category = count_str(new_vehicle->category);
+  new_vehicle->size_model = count_str(new_vehicle->model);
+  new_vehicle->size = calculate_vehicle_size(new_vehicle); 
+  return *new_vehicle;
+}
+
+int verify_vehicle_header_status(vehicle_header_t header){
+  if(header.status == 0){
+    printf(ERROR_MESSAGE);
+    return 0;
+  }
+  return 1;
+}
