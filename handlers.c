@@ -105,29 +105,71 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   vehicle_t current_vehicle;
   int found = 0;  //its used to know if it should print a vehicle
   int found_total = 0;
-  for(int i = 0; i < header.count; i++) {
+  for(int i = 0; i < (header.count + header.count_removed); i++) {
     current_vehicle = read_vehicle(bin_file, 0);
-    switch(fieldname[0]){
-      case 'p': //prefixo
-        if(strcmp(current_vehicle.prefix, value) == 0) found = 1;
-        break;
-      case 'd': //data
-        if(strcmp(current_vehicle.date, value) == 0) found = 1;
-        break;
-      case 'q': //quantidade de lugares
-        if(current_vehicle.seats == atoi(value)) found = 1;
-        break;
-      case 'm': //modelo
-        if(strcmp(current_vehicle.model, value) == 0) found = 1;
-        break;
-      case 'c': //categoria
-        if(strcmp(current_vehicle.category, value) == 0) found = 1;
-        break;
+    if(current_vehicle.removed == '1'){  //se o registro nao tiver sido removido
+      switch(fieldname[0]){
+        case 'p': //prefixo
+          if(strcmp(current_vehicle.prefix, value) == 0) found = 1;
+          break;
+        case 'd': //data
+          if(strcmp(current_vehicle.date, value) == 0) found = 1;
+          break;
+        case 'q': //quantidade de lugares
+          if(current_vehicle.seats == atoi(value)) found = 1;
+          break;
+        case 'm': //modelo
+          if(strcmp(current_vehicle.model, value) == 0) found = 1;
+          break;
+        case 'c': //categoria
+          if(strcmp(current_vehicle.category, value) == 0) found = 1;
+          break;
+      }
+      if(found == 1){  //if found a match
+        print_vehicle(current_vehicle);
+        found_total++;    //updates
+        found = 0;
+      }
     }
-    if(found == 1){  //if found a match
-      print_vehicle(current_vehicle);
-      found_total++;    //updates
-      found = 0;
+  }
+  if(found_total == 0) //if it never found any vehicles that match
+    printf(EMPTY_MESSAGE);
+  fclose(bin_file);
+}
+
+void find_from_lines(char filename[], char fieldname[], char value[]) {
+  line_header_t header;
+  FILE *bin_file = open_file(filename, "rb");
+  header = read_line_header(bin_file);
+  if(verify_line_header_status(header) == 0){ //if header is 0
+    fclose(bin_file);
+    return;
+  }
+  line_t current_line;
+  int found = 0;  //its used to know if it should print a vehicle
+  int found_total = 0;
+  for(int i = 0; i < (header.count + header.count_removed); i++) {
+    current_line = read_line(bin_file, 0);
+    if(current_line.removed == '1'){  //se o registro nao tiver sido removido
+      switch(fieldname[2]){
+        case 'd': //co d Linha
+          if(current_line.line_code == atoi(value)) found = 1;
+          break;
+        case 'e': //ac e itaCartao
+          if(current_line.accept_card == value) found = 1;
+          break;
+        case 'm': //no m eLinha
+          if(strcmp(current_line.name, value) == 0) found = 1;
+          break;
+        case 'r': //co r Linha
+          if(strcmp(current_line.color, value) == 0) found = 1;
+          break;
+      }
+      if(found == 1){  //if found a match
+        print_line(current_line);
+        found_total++;    //updates
+        found = 0;
+      }
     }
   }
   if(found_total == 0) //if it never found any vehicles that match
@@ -165,8 +207,7 @@ void insert_on_vehicles(char filename[], int n){
 
 void parse_input() {
   int option, n;
-  char filename_in[30], filename_out[30], fieldname[30];
-  char* value = NULL;
+  char filename_in[30], filename_out[30], fieldname[30], value[30];
   scanf("%d", &option);
   switch (option) {
     case 1:
@@ -189,7 +230,11 @@ void parse_input() {
       scanf("%s %s", filename_in, fieldname);
       scan_quote_string(value);
       find_from_vehicles(filename_in, fieldname, value);
-      free(value);
+      return;
+    case 6:
+      scanf("%s %s", filename_in, fieldname);
+      scan_quote_string(value);
+      find_from_lines(filename_in, fieldname, value);
       return;
     case 7:
       scanf("%s %d", filename_in, &n);
