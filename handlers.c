@@ -107,7 +107,7 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   int found_total = 0;
   for(int i = 0; i < (header.count + header.count_removed); i++) {
     current_vehicle = read_vehicle(bin_file, 0);
-    if(current_vehicle.removed == '1'){  //se o registro nao tiver sido removido
+    if(current_vehicle.removed == '1'){  //if the register was not removed
       switch(fieldname[0]){
         case 'p': //prefixo
           if(strcmp(current_vehicle.prefix, value) == 0) found = 1;
@@ -150,7 +150,7 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
   int found_total = 0;
   for(int i = 0; i < (header.count + header.count_removed); i++) {
     current_line = read_line(bin_file, 0);
-    if(current_line.removed == '1'){  //se o registro nao tiver sido removido
+    if(current_line.removed == '1'){  //if the register was not removed
       switch(fieldname[2]){
         case 'd': //co d Linha
           if(current_line.line_code == atoi(value)) found = 1;
