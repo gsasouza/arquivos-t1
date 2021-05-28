@@ -143,7 +143,7 @@ vehicle_t create_vehicle(){
   new_vehicle->removed = '1';
   new_vehicle->size_category = count_str(new_vehicle->category);
   new_vehicle->size_model = count_str(new_vehicle->model);
-  new_vehicle->size = calculate_vehicle_size(new_vehicle); 
+  new_vehicle->size = calculate_vehicle_size(new_vehicle);
   return *new_vehicle;
 }
 

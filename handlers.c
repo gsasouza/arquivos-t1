@@ -60,7 +60,8 @@ void select_from_vehicles(char filename[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_vehicle_header(bin_file);
-  if(verify_vehicle_header_status(header) == 0){ //if header is 0
+  if(header.status == '0'){ //if file is not consistent
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   }
@@ -79,7 +80,8 @@ void select_from_lines(char filename[]) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_line_header(bin_file);
-  if(verify_line_header_status(header) == 0){//if header is 0
+  if(header.status == '0'){//if file is not consistent
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   } 
@@ -98,7 +100,8 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_vehicle_header(bin_file);
-  if(verify_vehicle_header_status(header) == 0){ //if header is 0
+  if(header.status == '0'){ //if file is not consistent
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   }
@@ -141,7 +144,8 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_line_header(bin_file);
-  if(verify_line_header_status(header) == 0){ //if header is 0
+  if(header.status == '0'){ //if file is not consistent
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   }
@@ -179,11 +183,11 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
 
 void insert_on_vehicles(char filename[], int n){
   vehicle_header_t header;
-  int n_removed = 0;
   int n_inserted = 0;
   FILE *bin_file = open_file(filename, "rb+");
   header = read_vehicle_header(bin_file);
-  if(verify_vehicle_header_status(header) == 0){ //if header is 0
+  if(header.status == '0'){ //if file is not consistent
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   }
@@ -192,17 +196,15 @@ void insert_on_vehicles(char filename[], int n){
   for(int i = 0; i < n; i++){
     current_vehicle = create_vehicle();
     write_vehicle(bin_file, current_vehicle);
-    if(current_vehicle.prefix[0] == '*')  //if the removed token is present
-      n_removed++;
-    else
-      n_inserted++;
-    header.next_reg_byte += current_vehicle.size;
+    n_inserted++;
+    header.next_reg_byte += current_vehicle.size + 1; //+1 to skip the last byte of the previous vehicle
   }
   header.count += n_inserted;
-  header.count_removed += n_removed;
   fseek(bin_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_vehicle_header(bin_file, header); //updates the header
+  binarioNaTela(filename);
   fclose(bin_file);
+  return;
 }
 
 void parse_input() {
@@ -239,7 +241,7 @@ void parse_input() {
     case 7:
       scanf("%s %d", filename_in, &n);
       insert_on_vehicles(filename_in, n);
-      return  binarioNaTela(filename_in);
+      return;
     default:
       printf(ERROR_MESSAGE);
       return ;
