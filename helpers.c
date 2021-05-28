@@ -1,4 +1,7 @@
-//Yann Amado Nunes Costa nUSP: 10746943
+/*
+ * Gabriel Santos Souza nUSP: 11208176
+ * Yann Amado Nunes Costa nUSP: 10746943
+ */
 
 #include "helpers.h"
 #include "ctype.h"
@@ -11,6 +14,7 @@ char *add_empty_padding(char *str, int size) {
   }
   return str;
 }
+
 
 FILE *open_file(char filename[], char mode[]) {
   FILE *file = fopen(filename, mode);
@@ -64,7 +68,7 @@ char *format_print_null_int(int value) {
 }
 
 size_t calculate_maybe_null_size(char str[]) {
-  if (strcmp(str, "NULO") == 0) return 0;
+  if (strcmp(str, "NULO") == 0 || strcmp(str, "") == 0) return 0;
   return strlen(str);
 }
 

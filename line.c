@@ -1,4 +1,7 @@
-//Yann Amado Nunes Costa nUSP: 10746943
+/*
+ * Gabriel Santos Souza nUSP: 11208176
+ * Yann Amado Nunes Costa nUSP: 10746943
+ */
 
 #include "line.h"
 
@@ -105,4 +108,26 @@ void write_line(FILE *file, line_t line) {
   fwrite(&line.name, 1, line.size_name, file);
   fwrite(&line.size_color, 4, 1, file);
   fwrite(&line.color, 1, line.size_color, file);
+}
+
+line_t create_line() {
+  line_t *new_line = malloc(sizeof(line_t));
+  scanf("%d", &new_line->line_code);
+  scan_quote_string(new_line->accept_card);
+  scan_quote_string(new_line->name);
+  scan_quote_string(new_line->color);
+  new_line->size_name = calculate_maybe_null_size(new_line->name);
+  new_line->size_color = calculate_maybe_null_size(new_line->color);
+  new_line->removed = '0';
+  new_line->size = calculate_line_size(new_line);
+  return *new_line;
+}
+
+
+int verify_line_header_status(line_header_t header) {
+  if (header.status == '0') {
+    printf(ERROR_MESSAGE);
+    return 0;
+  }
+  return 1;
 }

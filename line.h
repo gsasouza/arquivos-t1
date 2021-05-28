@@ -1,4 +1,7 @@
-//Yann Amado Nunes Costa nUSP: 10746943
+/*
+ * Gabriel Santos Souza nUSP: 11208176
+ * Yann Amado Nunes Costa nUSP: 10746943
+ */
 
 /*
  * Responsible for line related functions and data structures like reading from csv,
@@ -49,6 +52,10 @@ line_header_t read_line_header_from_csv(char line[]);
 line_t read_line_from_csv(char line[]);
 
 void update_line_header(line_header_t *header, line_t *line);
+
+line_t create_line();
+
+int verify_line_header_status(line_header_t header);
 
 void print_line(line_t line);
 

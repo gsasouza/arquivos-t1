@@ -117,16 +117,6 @@ void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header) {
   fwrite(&vehicle_header.category_description, 20, 1, file);
 }
 
-int count_str(char str[]){
-  int letters = 0;
-  int i = 0;
-  while(str[i] != '\0'){
-    letters++;
-    i++;
-  }
-  return letters;
-}
-
 vehicle_t create_vehicle(){
   int seats, line_code;
   vehicle_t* new_vehicle = malloc(sizeof(vehicle_t));
@@ -140,15 +130,15 @@ vehicle_t create_vehicle(){
 
   new_vehicle->seats = seats;
   new_vehicle->line_code = line_code;
-  new_vehicle->removed = '1';
-  new_vehicle->size_category = count_str(new_vehicle->category);
-  new_vehicle->size_model = count_str(new_vehicle->model);
+  new_vehicle->removed = '0';
+  new_vehicle->size_category = calculate_maybe_null_size(new_vehicle->category);
+  new_vehicle->size_model = calculate_maybe_null_size(new_vehicle->model);
   new_vehicle->size = calculate_vehicle_size(new_vehicle);
   return *new_vehicle;
 }
 
 int verify_vehicle_header_status(vehicle_header_t header){
-  if(header.status == 0){
+  if(header.status == '0'){
     printf(ERROR_MESSAGE);
     return 0;
   }

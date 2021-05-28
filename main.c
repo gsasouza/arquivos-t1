@@ -1,4 +1,7 @@
-//Yann Amado Nunes Costa nUSP: 10746943
+/*
+ * Gabriel Santos Souza nUSP: 11208176
+ * Yann Amado Nunes Costa nUSP: 10746943
+ */
 
 #include "handlers.h"
 
