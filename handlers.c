@@ -5,6 +5,9 @@
 
 #include "handlers.h"
 
+/*
+ * Create all vehicle entries from a csv file
+ */
 void create_table_vehicle(char filename_csv[], char filename_bin[]) {
   char buffer[200];
   FILE *bin_file = open_file(filename_bin, "w+");
@@ -32,6 +35,9 @@ void create_table_vehicle(char filename_csv[], char filename_bin[]) {
   fclose(csv_file);
 }
 
+/*
+ * Create all line entries from a csv file
+ */
 void create_table_line(char filename_csv[], char filename_bin[]) {
   char buffer[200];
   FILE *bin_file = open_file(filename_bin, "w+");
@@ -59,6 +65,9 @@ void create_table_line(char filename_csv[], char filename_bin[]) {
   fclose(csv_file);
 }
 
+/*
+ * Find all entries in vehicles bin file
+ */
 void select_from_vehicles(char filename[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
@@ -79,6 +88,9 @@ void select_from_vehicles(char filename[]) {
   fclose(bin_file);
 }
 
+/*
+ * Find all entries in line bin file
+ */
 void select_from_lines(char filename[]) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb");
@@ -99,6 +111,9 @@ void select_from_lines(char filename[]) {
   fclose(bin_file);
 }
 
+/*
+ * Find entry by field in vehicle bin file
+ */
 void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
@@ -143,6 +158,10 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   fclose(bin_file);
 }
 
+
+/*
+ * Find entry by field in line bin file
+ */
 void find_from_lines(char filename[], char fieldname[], char value[]) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb");
@@ -184,8 +203,10 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
   fclose(bin_file);
 }
 
+/*
+ * Handle insert new vehicle on vehicle bin file
+ */
 void insert_on_vehicles(char filename[], int n) {
-  ;
   FILE *bin_file = open_file(filename, "rb+");
   vehicle_header_t header = read_vehicle_header(bin_file);
   if (!verify_vehicle_header_status(header)) {
@@ -215,6 +236,9 @@ void insert_on_vehicles(char filename[], int n) {
   binarioNaTela(filename);
 }
 
+/*
+ * Handle insert new line on line bin file
+ */
 void insert_on_lines(char filename[], int n) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb+");

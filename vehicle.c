@@ -1,11 +1,19 @@
-//Yann Amado Nunes Costa nUSP: 10746943
-
+/*
+ * Yann Amado Nunes Costa nUSP: 10746943
+ * Gabriel Santos Souza nUsp: 11208176
+ */
 #include "vehicle.h"
 
+/*
+ * Calculate vehicle entry size
+ */
 int calculate_vehicle_size(vehicle_t *vehicle) {
   return vehicle->size = 31 + vehicle->size_model + vehicle->size_category;
 }
 
+/*
+ * Read vehicle entry from csv file
+ */
 vehicle_t read_vehicle_from_csv(char line[]) {
   vehicle_t *new_vehicle = malloc(sizeof(vehicle_t));
   strcpy(new_vehicle->prefix, add_str_end(strsep(&line, ",")));
@@ -21,6 +29,9 @@ vehicle_t read_vehicle_from_csv(char line[]) {
   return *new_vehicle;
 }
 
+/*
+ * Read vehicle header from csv file
+ */
 vehicle_header_t read_vehicle_header_from_csv(char line[]) {
   vehicle_header_t new_header;
   strcpy(new_header.prefix_description, strsep(&line, ","));
@@ -36,11 +47,17 @@ vehicle_header_t read_vehicle_header_from_csv(char line[]) {
   return new_header;
 }
 
+/*
+ * Update header after a new vehicle entry
+ */
 void update_header(vehicle_header_t *header, vehicle_t *vehicle) {
   if (vehicle->removed == '1') header->count_removed = header->count_removed + 1;
   else header->count = header->count + 1;
 }
 
+/*
+ * Print formatted vehicle
+ */
 void print_vehicle(vehicle_t vehicle) {
   printf("Prefixo do veiculo: %s\n", format_print_null(vehicle.prefix));
   printf("Modelo do veiculo: %s\n", format_print_null(vehicle.model));
@@ -49,8 +66,9 @@ void print_vehicle(vehicle_t vehicle) {
   printf("Quantidade de lugares sentados disponiveis: %s\n\n", format_print_null_int(vehicle.seats));
 }
 
-
-
+/*
+ * Write vehicle in a bin file
+ */
 void write_vehicle(FILE *file, vehicle_t vehicle) {
   fwrite(invert_remove(vehicle.removed), 1, 1, file);
   fwrite(&vehicle.size, 4, 1, file);
@@ -64,7 +82,9 @@ void write_vehicle(FILE *file, vehicle_t vehicle) {
   fwrite(&vehicle.category, 1, vehicle.size_category, file);
 }
 
-
+/*
+ * Format ending in vehicle dynamic fields
+ */
 void add_end_to_vehicle_fields(vehicle_t *vehicle) {
   vehicle->model[vehicle->size_model] = '\0';
   vehicle->category[vehicle->size_category] = '\0';
@@ -72,6 +92,9 @@ void add_end_to_vehicle_fields(vehicle_t *vehicle) {
   if (vehicle->date[0] == '@') vehicle->date[0] = '\0';
 }
 
+/* *
+ * Read vehicle from bin file
+ */
 vehicle_t read_vehicle(FILE *file, int offset) {
   vehicle_t *new_vehicle = malloc(sizeof(vehicle_t));
   fread(&new_vehicle->removed, 1, 1, file);
@@ -88,6 +111,9 @@ vehicle_t read_vehicle(FILE *file, int offset) {
   return *new_vehicle;
 }
 
+/*
+ * Read vehicle header from bin file
+ */
 vehicle_header_t read_vehicle_header(FILE *file) {
   vehicle_header_t *new_header = malloc(sizeof(vehicle_header_t));
   fread(&new_header->status, 1, 1, file);
@@ -103,7 +129,9 @@ vehicle_header_t read_vehicle_header(FILE *file) {
   return *new_header;
 }
 
-
+/*
+ * Write vehicle header in bin file
+ */
 void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header) {
   fwrite(&vehicle_header.status, 1, 1, file);
   fwrite(&vehicle_header.next_reg_byte, 8, 1, file);
@@ -117,6 +145,9 @@ void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header) {
   fwrite(&vehicle_header.category_description, 20, 1, file);
 }
 
+/*
+ * Create new vehicle from user input
+ */
 vehicle_t create_vehicle(){
   int seats, line_code;
   vehicle_t* new_vehicle = malloc(sizeof(vehicle_t));
@@ -137,6 +168,9 @@ vehicle_t create_vehicle(){
   return *new_vehicle;
 }
 
+/*
+ * Verify if vehicle bin file is consistent
+ */
 int verify_vehicle_header_status(vehicle_header_t header){
   if(header.status == '0'){
     printf(ERROR_MESSAGE);

@@ -1,4 +1,7 @@
-//Yann Amado Nunes Costa nUSP: 10746943
+/*
+ * Gabriel Santos Souza nUSP: 11208176
+ * Yann Amado Nunes Costa nUSP: 10746943
+ */
 
 /*
  * Responsible for input handlers, it parses the input and call the functions related to vehicle and line

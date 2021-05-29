@@ -5,16 +5,25 @@
 
 #include "line.h"
 
+/*
+ * Calculate line entry size
+ */
 int calculate_line_size(line_t *line) {
   return 13 + line->size_color + line->size_name;
 }
 
+/*
+ * Format "Aceita Cartão" value
+ */
 char *format_accept_card(char accepted_card) {
   if (accepted_card == 'S') return "PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR";
   if (accepted_card == 'N') return "PAGAMENTO EM CARTAO E DINHEIRO";
   return "PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA";
 }
 
+/*
+ * Print formatted line
+ */
 void print_line(line_t line) {
   printf("Codigo da linha: %s\n", format_print_null_int(line.line_code));
   printf("Nome da linha: %s\n", format_print_null(line.name));
@@ -22,6 +31,9 @@ void print_line(line_t line) {
   printf("Aceita cartao: %s\n\n", format_accept_card(line.accept_card[0]));
 }
 
+/*
+ * Read line header from csv
+ */
 line_header_t read_line_header_from_csv(char line[]) {
   line_header_t new_header;
   strcpy(new_header.code_description, strsep(&line, ","));
@@ -35,11 +47,17 @@ line_header_t read_line_header_from_csv(char line[]) {
   return new_header;
 }
 
+/*
+ * Update header after a new entry added
+ */
 void update_line_header(line_header_t *header, line_t *line) {
   if (line->removed == '1') header->count_removed = header->count_removed + 1;
   else header->count = header->count + 1;
 }
 
+/*
+ * Read header from bin file
+ */
 line_header_t read_line_header(FILE *file) {
   line_header_t new_header;
   fread(&new_header.status, 1, 1, file);
@@ -53,6 +71,9 @@ line_header_t read_line_header(FILE *file) {
   return new_header;
 }
 
+/*
+ * Read a line from csv
+ */
 line_t read_line_from_csv(char line[]) {
   line_t *new_line = malloc(sizeof(line_t));
   char *line_code_str = strsep(&line, ",");
@@ -67,7 +88,9 @@ line_t read_line_from_csv(char line[]) {
   return *new_line;
 }
 
-
+/*
+ * Write line header in bin file
+ */
 void write_line_header(FILE *file, line_header_t line_header) {
   fwrite(&line_header.status, 1, 1, file);
   fwrite(&line_header.next_reg_byte, 8, 1, file);
@@ -79,11 +102,17 @@ void write_line_header(FILE *file, line_header_t line_header) {
   fwrite(&line_header.color_description, 24, 1, file);
 }
 
+/*
+ * Format line dynamic fields
+ */
 void add_end_to_fields(line_t *line) {
   line->name[line->size_name] = '\0';
   line->color[line->size_color] = '\0';
 }
 
+/*
+ * Read line from bin file
+ */
 line_t read_line(FILE *file, int offset) {
   line_t *new_line = malloc(sizeof(line_t));
   fread(&new_line->removed, 1, 1, file);
@@ -98,7 +127,9 @@ line_t read_line(FILE *file, int offset) {
   return *new_line;
 }
 
-
+/*
+ * Write line in bin file
+ */
 void write_line(FILE *file, line_t line) {
   fwrite(invert_remove(line.removed), 1, 1, file);
   fwrite(&line.size, 4, 1, file);
@@ -110,6 +141,9 @@ void write_line(FILE *file, line_t line) {
   fwrite(&line.color, 1, line.size_color, file);
 }
 
+/*
+ * Create a new line from user input
+ */
 line_t create_line() {
   line_t *new_line = malloc(sizeof(line_t));
   scanf("%d", &new_line->line_code);
@@ -124,6 +158,9 @@ line_t create_line() {
 }
 
 
+/*
+ * Verify if file is consistent
+ */
 int verify_line_header_status(line_header_t header) {
   if (header.status == '0') {
     printf(ERROR_MESSAGE);

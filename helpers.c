@@ -6,6 +6,9 @@
 #include "helpers.h"
 #include "ctype.h"
 
+/*
+ * Add dynamic fields padding (@)
+ */
 char *add_empty_padding(char *str, int size) {
   int start = (int) strlen(str);
   str[start] = '\0';
@@ -15,7 +18,9 @@ char *add_empty_padding(char *str, int size) {
   return str;
 }
 
-
+/*
+ * Open a file and handle error
+ */
 FILE *open_file(char filename[], char mode[]) {
   FILE *file = fopen(filename, mode);
   if (!file) {
@@ -25,21 +30,33 @@ FILE *open_file(char filename[], char mode[]) {
   return file;
 }
 
+/*
+ * Format field with "NULO" or "" as value
+ */
 char *format_print_null(char value[]) {
   if ((strcmp(value, "NULO") == 0) || (strcmp(value, "") == 0)) return NULL_MESSAGE;
   return value;
 }
 
+/*
+ * Format int fields that can maybe have "NULO" value
+ */
 int format_csv_maybe_empty_int(char *str) {
   if (strcmp(str, "NULO") == 0) return -1;
   return (int) strtod(str, NULL);
 }
 
+/*
+ * Format strings that can maybe have "NULO" value
+ */
 char *format_csv_maybe_empty_str(char *str) {
   if (strcmp(str, "NULO") == 0) return "";
   return str;
 }
 
+/*
+ * Format strings that can maybe have a removed entry (starts with "*")
+ */
 char format_csv_maybe_removed_str(char *str) {
   if (str[0] == '*') {
     memmove(str, str + 1, 5);
@@ -49,17 +66,26 @@ char format_csv_maybe_removed_str(char *str) {
   return '0';
 }
 
+/*
+ * Add ending to csv last field
+ */
 char *format_csv_last_field(char *str) {
   str[strlen(str) - 1] = '\0';
   return str;
 }
 
+/*
+ * Add ending to a string
+ */
 char *add_str_end(char *str) {
   if (strcmp(str, "") == 0) return str;
   str[strlen(str)] = '\0';
   return str;
 }
 
+/*
+ * Format int field with "NULO" value for printing
+ */
 char *format_print_null_int(int value) {
   char *buffer = malloc(sizeof(int));
   if (value == -1) return NULL_MESSAGE;
@@ -67,12 +93,17 @@ char *format_print_null_int(int value) {
   return buffer;
 }
 
+/*
+ * Calculate size of fields that can be "NULO"
+ */
 size_t calculate_maybe_null_size(char str[]) {
   if (strcmp(str, "NULO") == 0 || strcmp(str, "") == 0) return 0;
   return strlen(str);
 }
 
-
+/*
+ * Format date for priting
+ */
 char *format_print_date(char date[]) {
   char *buffer = malloc(sizeof(char) * 100);
   char *months[] = {"janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
@@ -87,6 +118,9 @@ char *format_print_date(char date[]) {
   return buffer;
 }
 
+/*
+ * Invert remove value, because is counter intuitive to use "0" as true and "1" as false
+ */
 char *invert_remove(char removed) {
   if (removed == '0') return "1";
   return "0";
