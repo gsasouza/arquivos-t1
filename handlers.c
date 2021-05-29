@@ -10,7 +10,7 @@
  */
 void create_table_vehicle(char filename_csv[], char filename_bin[]) {
   char buffer[200];
-  FILE *bin_file = open_file(filename_bin, "w+");
+  FILE *bin_file = open_file(filename_bin, "wb+");
   FILE *csv_file = open_file(filename_csv, "r");
 
   // Handle header
@@ -40,7 +40,7 @@ void create_table_vehicle(char filename_csv[], char filename_bin[]) {
  */
 void create_table_line(char filename_csv[], char filename_bin[]) {
   char buffer[200];
-  FILE *bin_file = open_file(filename_bin, "w+");
+  FILE *bin_file = open_file(filename_bin, "wb+");
   FILE *csv_file = open_file(filename_csv, "r");
 
   // Handle header
@@ -79,7 +79,8 @@ void select_from_vehicles(char filename[]) {
   }
   if (header.count == 0) {
     printf(EMPTY_MESSAGE);
-    exit(0);
+    fclose(bin_file);
+    return;
   }
   for (int i = 0; i < header.count + header.count_removed; i++) {
     vehicle_t vehicle = read_vehicle(bin_file, 0);
@@ -102,7 +103,8 @@ void select_from_lines(char filename[]) {
   }
   if (header.count == 0) {
     printf(EMPTY_MESSAGE);
-    exit(0);
+    fclose(bin_file);
+    return;
   }
   for (int i = 0; i < header.count + header.count_removed; i++) {
     line_t line = read_line(bin_file, 0);
@@ -275,7 +277,7 @@ void insert_on_lines(char filename[], int n) {
  * parses input and decide what to do
  */
 void parse_input() {
-  int option, n;
+  int option, new_entries_count;
   char filename_in[30], filename_out[30], fieldname[30], value[30];
   scanf("%d", &option);
   switch (option) {
@@ -308,12 +310,12 @@ void parse_input() {
       find_from_lines(filename_in, fieldname, value);
       break;
     case 7:
-      scanf("%s %d", filename_in, &n);
-      insert_on_vehicles(filename_in, n);
+      scanf("%s %d", filename_in, &new_entries_count);
+      insert_on_vehicles(filename_in, new_entries_count);
       break;
     case 8:
-      scanf("%s %d", filename_in, &n);
-      insert_on_lines(filename_in, n);
+      scanf("%s %d", filename_in, &new_entries_count);
+      insert_on_lines(filename_in, new_entries_count);
       return;
     default:
       printf(ERROR_MESSAGE);
