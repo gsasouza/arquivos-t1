@@ -253,14 +253,9 @@ void split_root_overflow(btree_t *btree) {
   new_root->n_keys = 1;
   new_root->records[0] = left->records[half];
 
-  // move keys to right side;
-  for (int i = 0; i < right->n_keys; i++) {
-    right->records[i] = left->records[half + i + 1];
-  }
-  // move children to right side
-  for (int i = 0; i <= right->n_keys; i++) {
-    right->children[i] = left->children[half + i + 1];
-  }
+  // move keys and children to right side;
+  move_records_asc(right, left, 0, right->n_keys, 0, half + 1);
+  move_children_asc(right, left, 0, right->n_keys + 1, 0, half + 1);
 
   // change root
   btree->root = new_root;
