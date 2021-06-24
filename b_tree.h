@@ -21,7 +21,7 @@
  * key, value pair that will be stored
  */
 typedef struct record {
-  int key;
+  char key;
   long value;
 } record_t;
 
@@ -56,7 +56,7 @@ typedef struct btree_index_header {
 
 btree_t *create_btree(int order);
 
-void btree_insert(FILE* file, btree_t *btree, int key, long value);
+void btree_insert(FILE* file, btree_t *btree, btree_index_header_t *header,int key, long value);
 
 void print_by_level(btree_t *btree);
 
@@ -66,15 +66,13 @@ record_t *btree_find_node(node_t *node, int key);
 
 void write_index_header(FILE* file, btree_index_header_t* header);
 
-void write_index_node(FILE* file, btree_t *btree, node_t *node);
+void write_index_node(FILE* file, node_t *node);
 
 btree_index_header_t *read_index_header(FILE *file);
 
-node_t *read_index_node(FILE *file, int rrn, int parent_rrn);
+node_t *read_index_node(FILE *file, int rrn, node_t* parent);
 
 btree_index_header_t *create_btree_index_header(btree_t *btree);
-
-node_t *create_disk_node(int rnn, node_t *parent, int order, bool is_leaf);
 
 record_t *btree_find_node_disk(FILE* file, btree_index_header_t *header, node_t* node, int key);
 
