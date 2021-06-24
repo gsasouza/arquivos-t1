@@ -4,7 +4,9 @@
  */
 #include "b_tree.h"
 
-void btree_insert_internal(node_t *node, record_t *record, int order);
+/****** RAM functions ******/
+
+void btree_insert_internal(btree_t *btree, node_t *node, record_t *record, int order);
 
 /**
  * create new btree node
@@ -13,8 +15,10 @@ void btree_insert_internal(node_t *node, record_t *record, int order);
  * @param is_leaf - is a leaf node
  * @return - created node
  */
-node_t *create_node(node_t *parent, int order, bool is_leaf) {
+node_t *create_node(btree_t* btree, node_t *parent, int order, bool is_leaf) {
   node_t *node = malloc(sizeof(node_t));
+  node->rrn = btree->n_records + 1;
+  btree->n_records = btree->n_records + 1;
   node->n_keys = 0;
   node->is_leaf = is_leaf;
   node->children = malloc((order + 1) * sizeof(node_t *));
@@ -23,16 +27,18 @@ node_t *create_node(node_t *parent, int order, bool is_leaf) {
   return node;
 }
 
+
 /**
  * create new btree
  * @param order - btree order
  * @return - created btree
  */
-btree_t *create_b_tree(int order) {
-  btree_t *b_tree = malloc(sizeof(btree_t));
-  b_tree->order = order;
-  b_tree->root = create_node(NULL, order, true);
-  return b_tree;
+btree_t *create_btree(int order) {
+  btree_t *btree = malloc(sizeof(btree_t));
+  btree->n_records = -1;
+  btree->order = order;
+  btree->root = create_node(btree, NULL, order, true);
+  return btree;
 }
 
 /**
@@ -41,7 +47,7 @@ btree_t *create_b_tree(int order) {
  * @param value
  * @return - created record
  */
-record_t *create_record(int key, void *value) {
+record_t *create_record(int key, long value) {
   record_t *record = malloc(sizeof(record_t));
   record->key = key;
   record->value = value;
@@ -54,11 +60,11 @@ record_t *create_record(int key, void *value) {
  * @param key
  * @return - key found or not
  */
-bool find_key_in_node(node_t *node, int key) {
+record_t *find_key_in_node(node_t *node, int key) {
   for (int i = 0; i < node->n_keys; i++) {
-    if (node->records[i]->key == key) return true;
+    if (node->records[i]->key == key) return node->records[i];
   }
-  return false;
+  return NULL;
 }
 
 /**
@@ -126,7 +132,7 @@ void move_children_desc(node_t *to, node_t *from, int begin, int end, int paddin
  * @param node - current node
  * @param order - btree order
  */
-void split_node(node_t *node, int order) {
+void split_node(btree_t *btree, node_t *node, int order) {
   node_t *parent = node->parent;
 
   // root split is handled in another function
@@ -134,7 +140,7 @@ void split_node(node_t *node, int order) {
 
   // create new nodes
   node_t *left = node;
-  node_t *right = create_node(parent, order, left->is_leaf);;
+  node_t *right = create_node(btree, parent, order, left->is_leaf);;
 
   // divide old node
   int half = ceil((order - 1) / 2.0);
@@ -165,7 +171,7 @@ void split_node(node_t *node, int order) {
   parent->children[position + 1] = right;
 
   // if parent now has an overflow, call split recursively for parent
-  if (parent->n_keys == order) return split_node(parent, order);
+  if (parent->n_keys == order) return split_node(btree, parent, order);
 }
 
 /**
@@ -174,7 +180,7 @@ void split_node(node_t *node, int order) {
  * @param record - record to be inserted
  * @param order - btree order
  */
-void btree_insert_leaf(node_t *node, record_t *record, int order) {
+void btree_insert_leaf(btree_t *btree, node_t *node, record_t *record, int order) {
 
   // key already exists, just end insertion
   if (find_key_in_node(node, record->key)) return;
@@ -193,7 +199,7 @@ void btree_insert_leaf(node_t *node, record_t *record, int order) {
 
   // if it has an overflow and is not root then split the node
   if (node->n_keys == order && node->parent != NULL) {
-    split_node(node, order);
+    split_node(btree, node, order);
   }
 }
 
@@ -203,7 +209,7 @@ void btree_insert_leaf(node_t *node, record_t *record, int order) {
  * @param record - record to be inserted
  * @param order - btree order
  */
-void btree_insert_nonleaf(node_t *node, record_t *record, int order) {
+void btree_insert_nonleaf(btree_t *btree, node_t *node, record_t *record, int order) {
   int position = node->n_keys - 1;
 
   // key already exits, just end insertion
@@ -216,7 +222,7 @@ void btree_insert_nonleaf(node_t *node, record_t *record, int order) {
   position++;
 
   // call insert recursively
-  btree_insert_internal(node->children[position], record, order);
+  btree_insert_internal(btree, node->children[position], record, order);
 }
 
 /**
@@ -225,9 +231,9 @@ void btree_insert_nonleaf(node_t *node, record_t *record, int order) {
  * @param record - record to be inserted
  * @param order - btree order
  */
-void btree_insert_internal(node_t *node, record_t *record, int order) {
-  if (node->is_leaf) return btree_insert_leaf(node, record, order);
-  return btree_insert_nonleaf(node, record, order);
+void btree_insert_internal(btree_t *btree, node_t *node, record_t *record, int order) {
+  if (node->is_leaf) return btree_insert_leaf(btree, node, record, order);
+  return btree_insert_nonleaf(btree, node, record, order);
 }
 
 /**
@@ -237,8 +243,9 @@ void btree_insert_internal(node_t *node, record_t *record, int order) {
 void split_root_overflow(btree_t *btree) {
   // start new nodes
   node_t *left = btree->root;
-  node_t *new_root = create_node(NULL, btree->order, false);
-  node_t *right = create_node(new_root, btree->order, left->is_leaf);
+  node_t *right = create_node(btree, NULL, btree->order, left->is_leaf);
+  node_t *new_root = create_node(btree, NULL, btree->order, false);
+  right->parent = new_root;
   left->parent = new_root;
   new_root->children[0] = btree->root;
   new_root->children[1] = right;
@@ -267,9 +274,9 @@ void split_root_overflow(btree_t *btree) {
  * @param key - record key
  * @param value - record value
  */
-void btree_insert(btree_t *btree, int key, void *value) {
+void btree_insert(btree_t *btree, int key, long value) {
   record_t *record = create_record(key, value);
-  btree_insert_internal(btree->root, record, btree->order);
+  btree_insert_internal(btree, btree->root, record, btree->order);
   // if it has an overflow, split root
   if (btree->root->n_keys == btree->order) split_root_overflow(btree);
 }
@@ -305,6 +312,7 @@ void print_by_level(btree_t *btree) {
       level = node_level;
       printf("\n| ");
     }
+    printf("(%d) ", btree_node->rrn);
     for (int i = 0; i < btree_node->n_keys; i++) {
       printf("%c ", btree_node->records[i]->key);
     }
@@ -316,6 +324,152 @@ void print_by_level(btree_t *btree) {
       }
     }
   }
+}
 
+
+record_t *btree_find_node(node_t *node, int key) {
+  if (!node) return NULL;
+
+  record_t *record = find_key_in_node(node, key);
+  if (record) return record;
+
+  // find position
+  int position = node->n_keys - 1;
+  while (position >= 0 && key < node->records[position]->key) {
+    position--;
+  }
+  position++;
+  return btree_find_node(node->children[position], key);
+}
+
+/****** Disk functions ******/
+
+btree_index_header_t *create_btree_index_header(btree_t *btree) {
+  btree_index_header_t *header = malloc(sizeof( btree_index_header_t));
+  header->status = true;
+  header->root_node_rrn = btree->root->rrn;
+  header->next_node_rrn = btree->n_records;
+  return header;
+}
+
+node_t *create_disk_node(int rnn, node_t *parent, int order, bool is_leaf) {
+  node_t *node = malloc(sizeof(node_t));
+  node->rrn = rnn;
+  node->n_keys = 0;
+  node->is_leaf = is_leaf;
+  node->is_loaded = false;
+  node->children = malloc((order + 1) * sizeof(node_t *));
+  node->records = malloc((order) * sizeof(record_t *));
+  node->parent = parent;
+  return node;
+}
+
+
+record_t *btree_find_node_disk(FILE* file, btree_t *btree, node_t *node, int key) {
+  // found
+  record_t *record = find_key_in_node(node, key);
+  if (record) {
+    free(btree);
+    free(node);
+    return record;
+  }
+
+  // stop condition: not found
+  if (node->is_leaf) {
+    free(btree);
+    free(node);
+    return NULL;
+  }
+
+
+  // find position
+  int position = node->n_keys - 1;
+  while (position >= 0 && key < node->records[position]->key) {
+    position--;
+  }
+  position++;
+
+  // find in children, load from file before calling function
+  if (!node->children[position]->is_loaded) read_index_node(file, btree, NULL, node->children[position]);
+  return btree_find_node_disk(file, btree, node->children[position], key);
+}
+
+/**
+ * write index header to file
+ * @param file
+ * @param header
+ */
+void write_index_header(FILE* file, btree_index_header_t* header) {
+  fwrite(format_status_bool(header->status), 1, 1, file);
+  fwrite(&header->root_node_rrn, 4, 1, file);
+  fwrite(&header->next_node_rrn, 4, 1, file);
+  fwrite("@", 1, 68, file);
+}
+
+/**
+ * write btree index node to file
+ * @param file
+ * @param btree
+ * @param node
+ */
+void write_index_node(FILE* file, btree_t *btree, node_t *node){
+  int null_pointer = -1;
+  fwrite(format_status_bool(node->is_leaf), 1, 1, file);
+  fwrite(&node->n_keys, 4, 1, file);
+  fwrite(&node->rrn, 4, 1, file);
+
+  // write records and pointers
+  if (node->is_leaf) fwrite(&null_pointer, 4, 1, file);
+  else fwrite(&node->children[0]->rrn, 4, 1, file);
+
+  for (int i = 0; i < node->n_keys; i++) {
+    fwrite(&node->records[i]->key, 4, 1, file);
+    fwrite(&node->records[i]->value, 8, 1, file);
+    if (node->is_leaf) fwrite(&null_pointer, 4, 1, file);
+    else fwrite(&node->children[i + 1]->rrn, 4, 1, file);
+  }
+
+  // write empty records and pointers
+  for (int i = node->n_keys; i < btree->order; i++) {
+    fwrite(&null_pointer, 4, 1, file);
+    fwrite(&null_pointer, 8, 1, file);
+    fwrite(&null_pointer, 4, 1, file);
+  }
+}
+
+/**
+ *
+ * @param file
+ */
+btree_index_header_t *read_index_header(FILE *file) {
+  char buffer;
+  btree_index_header_t *header = malloc(sizeof(btree_index_header_t));
+  fread(&buffer, 1, 1, file);
+  header->status = buffer == '0' ? false : true;
+  fread(&header->root_node_rrn, 4, 1, file);
+  fread(&header->next_node_rrn, 4, 1, file);
+  return header;
+}
+
+node_t *read_index_node(FILE *file, int order, node_t* parent, node_t* node) {
+  char buffer;
+  fread(&buffer, 1, 1, file);
+  node->is_leaf = buffer == '0' ? false : true;
+  node->parent = parent;
+  fread(&node->n_keys, 4, 1, file);
+  fread(&node->rrn, 4, 1, file);
+  node->children[0] = create_disk_node(0, node, order, true);
+  fread(&node->children[0]->rrn, 4, 1, file);
+  for (int i = 0; i < node->n_keys; i++) {
+    node->records[i] = malloc(sizeof(record_t));
+    fread(&node->records[i]->key, 4, 1, file);
+    fread(&node->records[i]->value, 8, 1, file);
+    if (!node->is_leaf) {
+      node->children[i + 1] = create_disk_node(0, node, order, true);
+      fread(&node->children[i + 1]->rrn, 4, 1, file);
+    }
+  }
+  node->is_loaded = true;
+  return node;
 }
 

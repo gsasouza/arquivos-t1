@@ -126,6 +126,11 @@ char *invert_remove(char removed) {
   return "0";
 }
 
+char *format_status_bool(bool status) {
+  if (status == 0) return "0";
+  return "1";
+}
+
 
 void binarioNaTela(char *nomeArquivoBinario) { /* Você não precisa entender o código dessa função. */
 

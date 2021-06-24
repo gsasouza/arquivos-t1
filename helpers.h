@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define NULL_MESSAGE "campo com valor nulo"
 #define ERROR_MESSAGE "Falha no processamento do arquivo."
@@ -45,5 +46,7 @@ char *add_str_end(char *str);
 char *invert_remove(char removed);
 
 void scan_quote_string(char *str);
+
+char *format_status_bool (bool status);
  
 #endif //T1_HELPERS_H
