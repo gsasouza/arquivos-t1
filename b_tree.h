@@ -14,6 +14,7 @@
 #include "helpers.h"
 
 #define DISK_PAGE_SIZE 77
+#define BYTE_OFFSET(rnn) (rnn + 1) * DISK_PAGE_SIZE
 
 /**
  * key, value pair that will be stored
@@ -50,9 +51,11 @@ typedef struct btree_index_header {
 
 btree_t *create_btree(int order);
 
-void btree_insert(btree_t *btree, int key, long value);
+void btree_insert(FILE* file, btree_t *btree, int key, long value);
 
 void print_by_level(btree_t *btree);
+
+void print_by_level_from_disk(FILE* file);
 
 record_t *btree_find_node(node_t *node, int key);
 
