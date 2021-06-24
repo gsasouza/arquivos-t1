@@ -32,9 +32,10 @@ int main() {
   fclose(bin_file);
   bin_file = open_file("TESTE", "r");
   header = read_index_header(bin_file);
-  print_by_level_from_disk(bin_file);
+  printf("| (7) N | (2) D K | (6) S | (0) A B C | (3) G I | (5) M | (4) P R | (1) T U W | \n");
+  print_by_level(bin_file);
   node_t *root = read_index_node(bin_file, header->root_node_rrn, NULL);
-  record_t *record = btree_find_node_disk(bin_file, header, root, 'X');
+  record_t *record = btree_find_node(bin_file, header, root, 'U');
 //  parse_input();
   return 0;
 }
