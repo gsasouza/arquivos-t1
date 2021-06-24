@@ -9,24 +9,23 @@
 
 int main() {
   FILE *bin_file = open_file("TESTE", "wb+");
-  btree_t *btree = create_btree(ORDER);
-  btree_index_header_t *header = create_btree_index_header(btree);
+  btree_index_header_t *header = create_btree_index_header();
   write_index_header(bin_file, header);
-  btree_insert(bin_file, btree, header, 'C', 100);
-  btree_insert(bin_file, btree, header, 'S', 100);
-  btree_insert(bin_file, btree, header, 'D', 100);
-  btree_insert(bin_file, btree, header, 'T', 100);
-  btree_insert(bin_file, btree, header, 'A', 100);
-  btree_insert(bin_file, btree, header, 'M', 100);
-  btree_insert(bin_file, btree, header, 'P', 100);
-  btree_insert(bin_file, btree, header, 'I', 100);
-  btree_insert(bin_file, btree, header, 'B', 100);
-  btree_insert(bin_file, btree, header, 'W', 100);
-  btree_insert(bin_file,btree,header, 'N', 100);
-  btree_insert(bin_file,btree,header, 'G', 100);
-  btree_insert(bin_file,btree, header,'U', 100);
-  btree_insert(bin_file,btree,header, 'R', 100);
-  btree_insert(bin_file,btree,header, 'K', 100);
+  btree_insert(bin_file, header, 'C', 100);
+  btree_insert(bin_file, header, 'S', 100);
+  btree_insert(bin_file, header, 'D', 100);
+  btree_insert(bin_file, header, 'T', 100);
+  btree_insert(bin_file, header, 'A', 100);
+  btree_insert(bin_file, header, 'M', 100);
+  btree_insert(bin_file, header, 'P', 100);
+  btree_insert(bin_file, header, 'I', 100);
+  btree_insert(bin_file, header, 'B', 100);
+  btree_insert(bin_file, header, 'W', 100);
+  btree_insert(bin_file, header, 'N', 100);
+  btree_insert(bin_file, header, 'G', 100);
+  btree_insert(bin_file, header, 'U', 100);
+  btree_insert(bin_file, header, 'R', 100);
+  btree_insert(bin_file, header, 'K', 100);
 
 
 //  write_index_header(bin_file, header);

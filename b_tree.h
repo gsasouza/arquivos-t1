@@ -42,23 +42,13 @@ typedef struct node {
   record_t records2[ORDER];
 } node_t;
 
-typedef struct btree {
-  int n_records; // number of records stored in tree
-  int order; // btree order
-  node_t *root; // root pointer
-} btree_t;
-
 typedef struct btree_index_header {
   int status;
   int root_node_rrn;
   int next_node_rrn;
 } btree_index_header_t;
 
-btree_t *create_btree(int order);
-
-void btree_insert(FILE* file, btree_t *btree, btree_index_header_t *header,int key, long value);
-
-void print_by_level(btree_t *btree);
+void btree_insert(FILE* file,  btree_index_header_t *header,int key, long value);
 
 void print_by_level_from_disk(FILE* file);
 
@@ -72,7 +62,7 @@ btree_index_header_t *read_index_header(FILE *file);
 
 node_t *read_index_node(FILE *file, int rrn, node_t* parent);
 
-btree_index_header_t *create_btree_index_header(btree_t *btree);
+btree_index_header_t *create_btree_index_header();
 
 record_t *btree_find_node_disk(FILE* file, btree_index_header_t *header, node_t* node, int key);
 
