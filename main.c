@@ -30,13 +30,11 @@ int main() {
   write_index_header(bin_file, header);
   fclose(bin_file);
   bin_file = open_file("TESTE", "r");
-//  btree_index_header_t *header2 = read_index_header(bin_file);
-//  node_t *node = create_disk_node(header2->root_node_rrn, NULL, btree->order, true);
-//  node_t *node2 = read_index_node(bin_file, btree->order, NULL, node);
-//  fclose(bin_file);
   print_by_level(btree);
   printf("\n");
   print_by_level_from_disk(bin_file);
+  node_t *root = read_index_node(bin_file, header->root_node_rrn, -1);
+  record_t * record = btree_find_node_disk(bin_file, header, root, 'X');
 //  parse_input();
   return 0;
 }

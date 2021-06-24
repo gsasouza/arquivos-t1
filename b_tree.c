@@ -109,6 +109,7 @@ void move_records_desc(node_t *to, node_t *from, int begin, int end, int padding
 void move_children_asc(node_t *to, node_t *from, int begin, int end, int padding_to, int padding_from) {
   for (int i = begin; i < end; i++) {
     to->children[i + padding_to] = from->children[i + padding_from];
+    to->children_rrn[i + padding_to] = from->children_rrn[i + padding_from];
   }
 }
 
@@ -124,6 +125,7 @@ void move_children_asc(node_t *to, node_t *from, int begin, int end, int padding
 void move_children_desc(node_t *to, node_t *from, int begin, int end, int padding_to, int padding_from) {
   for (int i = begin; i > end; i--) {
     to->children[i + padding_to] = from->children[i + padding_from];
+    to->children_rrn[i + padding_to] = from->children_rrn[i + padding_from];
   }
 }
 
@@ -252,9 +254,13 @@ void split_root_overflow(FILE* file, btree_t *btree) {
   node_t *right = create_node(btree, NULL, btree->order, left->is_leaf);
   node_t *new_root = create_node(btree, NULL, btree->order, false);
   right->parent = new_root;
+  right->parent_rrn = new_root->rrn;
   left->parent = new_root;
+  left->parent_rrn = new_root->rrn;
   new_root->children[0] = btree->root;
+  new_root->children_rrn[0] = btree->root->rrn;
   new_root->children[1] = right;
+  new_root->children_rrn[1] = right->rrn;
 
 
   // divide old root
@@ -337,39 +343,6 @@ void print_by_level(btree_t *btree) {
   }
 }
 
-void print_by_level_from_disk(FILE *file) {
-  queue_node_t *current;
-  queue_t *queue = create_queue();
-  btree_index_header_t *header = read_index_header(file);
-  node_t *btree_node = create_disk_node(header->root_node_rrn, NULL, 4, true);
-  btree_node = read_index_node(file, 4, NULL, btree_node);
-  if (btree_node->n_keys == 0) {
-    printf("Empty tree.\n");
-    return;
-  }
-
-  enqueue(queue, create_queue_node(btree_node));
-  printf("| ");
-  while (queue->start != NULL) {
-    current = dequeue(queue);
-    btree_node = current->data;
-    printf("(%d) ", btree_node->rrn);
-    for (int i = 0; i < btree_node->n_keys; i++) {
-      printf("%c ", btree_node->records[i]->key);
-    }
-    printf("| ");
-    if (!btree_node->is_leaf) {
-      for (int i = 0; i <= btree_node->n_keys; i++) {
-        if (!btree_node->children[i]->is_loaded) {
-          read_index_node(file, 4, NULL, btree_node->children[i]);
-        }
-        enqueue(queue, create_queue_node(btree_node->children[i]));
-      }
-    }
-  }
-}
-
-
 record_t *btree_find_node(node_t *node, int key) {
   if (!node) return NULL;
 
@@ -386,6 +359,34 @@ record_t *btree_find_node(node_t *node, int key) {
 }
 
 /****** Disk functions ******/
+
+void print_by_level_from_disk(FILE *file) {
+  queue_node_t *current;
+  queue_t *queue = create_queue();
+  btree_index_header_t *header = read_index_header(file);
+  node_t *btree_node = read_index_node(file, header->root_node_rrn, -1);
+  if (btree_node->n_keys == 0) {
+    printf("Empty tree.\n");
+    return;
+  }
+
+  enqueue(queue, create_queue_node(btree_node));
+  printf("| ");
+  while (queue->start != NULL) {
+    current = dequeue(queue);
+    btree_node = current->data;
+    printf("(%d) ", btree_node->rrn);
+    for (int i = 0; i < btree_node->n_keys; i++) {
+      printf("%c ", btree_node->records2[i].key);
+    }
+    printf("| ");
+    if (!btree_node->is_leaf) {
+      for (int i = 0; i <= btree_node->n_keys; i++) {
+        enqueue(queue, create_queue_node(read_index_node(file, btree_node->children_rrn[i],  btree_node->rrn)));
+      }
+    }
+  }
+}
 
 btree_index_header_t *create_btree_index_header(btree_t *btree) {
   btree_index_header_t *header = malloc(sizeof( btree_index_header_t));
@@ -407,34 +408,34 @@ node_t *create_disk_node(int rnn, node_t *parent, int order, bool is_leaf) {
   return node;
 }
 
-
-record_t *btree_find_node_disk(FILE* file, btree_t *btree, node_t *node, int key) {
-  // found
-  record_t *record = find_key_in_node(node, key);
-  if (record) {
-    free(btree);
-    free(node);
-    return record;
+record_t *find_key_in_node_disk(node_t *node, int key) {
+  for (int i = 0; i < node->n_keys; i++) {
+    if (node->records2[i].key == key) return &node->records2[i];
   }
+  return NULL;
+}
+
+
+record_t *btree_find_node_disk(FILE* file, btree_index_header_t *header, node_t* node, int key) {
+  // found
+  record_t *record = find_key_in_node_disk(node, key);
+  if (record)  return record;
 
   // stop condition: not found
-  if (node->is_leaf) {
-    free(btree);
-    free(node);
-    return NULL;
-  }
+  if (node->is_leaf) return NULL;
+
 
 
   // find position
   int position = node->n_keys - 1;
-  while (position >= 0 && key < node->records[position]->key) {
+  while (position >= 0 && key < node->records2[position].key) {
     position--;
   }
   position++;
 
-  // find in children, load from file before calling function
-  if (!node->children[position]->is_loaded) read_index_node(file, btree->order, NULL, node->children[position]);
-  return btree_find_node_disk(file, btree, node->children[position], key);
+  //load next node from file before calling function recursively
+  node_t *next_node = read_index_node(file, node->children_rrn[position], node->rrn);
+  return btree_find_node_disk(file, header, next_node, key);
 }
 
 /**
@@ -497,26 +498,22 @@ btree_index_header_t *read_index_header(FILE *file) {
   return header;
 }
 
-node_t *read_index_node(FILE *file, int order, node_t* parent, node_t* node) {
-  if (!node) return NULL;
-  fseek(file, BYTE_OFFSET(node->rrn), SEEK_SET);
+node_t *read_index_node(FILE *file, int rrn, int parent_rrn) {
+  node_t *node = malloc(sizeof(node_t));
+  fseek(file, BYTE_OFFSET(rrn), SEEK_SET);
   char buffer;
   fread(&buffer, 1, 1, file);
   node->is_leaf = buffer == '0' ? false : true;
-  node->parent = parent;
+  node->parent_rrn = parent_rrn;
   fread(&node->n_keys, 4, 1, file);
   fread(&node->rrn, 4, 1, file);
-  node->children[0] = create_disk_node(0, node, order, true);
-  fread(&node->children[0]->rrn, 4, 1, file);
-  for (int i = 0; i < node->n_keys; i++) {
-    node->records[i] = create_record(0, 0);
-    fread(&node->records[i]->key, 4, 1, file);
-    fread(&node->records[i]->value, 8, 1, file);
-    node->children[i + 1] = create_disk_node(0, node, order, true);
-    fread(&node->children[i + 1]->rrn, 4, 1, file);
 
+  fread(&node->children_rrn[0], 4, 1, file);
+  for (int i = 0; i < node->n_keys; i++) {
+    fread(&node->records2[i].key, 4, 1, file);
+    fread(&node->records2[i].value, 8, 1, file);
+    fread(&node->children_rrn[i + 1], 4, 1, file);
   }
-  node->is_loaded = true;
   return node;
 }
 

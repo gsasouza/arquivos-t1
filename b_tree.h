@@ -13,6 +13,7 @@
 #include "queue.h"
 #include "helpers.h"
 
+#define ORDER 4
 #define DISK_PAGE_SIZE 77
 #define BYTE_OFFSET(rnn) (rnn + 1) * DISK_PAGE_SIZE
 
@@ -35,6 +36,10 @@ typedef struct node {
   record_t **records; // records data
   struct node **children; // node children
   struct node *parent; // node parent
+  /*Refactor*/
+  int parent_rrn;
+  int children_rrn[ORDER];
+  record_t records2[ORDER];
 } node_t;
 
 typedef struct btree {
@@ -65,10 +70,12 @@ void write_index_node(FILE* file, btree_t *btree, node_t *node);
 
 btree_index_header_t *read_index_header(FILE *file);
 
-node_t *read_index_node(FILE *file, int order, node_t* parent, node_t* node);
+node_t *read_index_node(FILE *file, int rrn, int parent_rrn);
 
 btree_index_header_t *create_btree_index_header(btree_t *btree);
 
 node_t *create_disk_node(int rnn, node_t *parent, int order, bool is_leaf);
+
+record_t *btree_find_node_disk(FILE* file, btree_index_header_t *header, node_t* node, int key);
 
 #endif //T1_B_TREE_H
