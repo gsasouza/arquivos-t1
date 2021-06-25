@@ -42,7 +42,7 @@ typedef struct node {
  * index header
  */
 typedef struct btree_index_header {
-  int status; // header status
+  bool status; // header status
   int root_node_rrn; // rrn of root node
   int next_node_rrn; // store how many nodes we have in the index
 } btree_index_header_t;

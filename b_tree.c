@@ -99,6 +99,7 @@ node_t *create_node(int rnn, node_t *parent, bool is_leaf) {
   node->n_keys = 0;
   node->is_leaf = is_leaf;
   node->parent = parent;
+  node->child = NULL;
   return node;
 }
 
@@ -115,7 +116,7 @@ void split_node(FILE *file, btree_index_header_t *header, node_t *node) {
   // create new nodes
   node_t *left = node;
   header->next_node_rrn++;
-  node_t *right = create_node(header->next_node_rrn, node, left->is_leaf);;
+  node_t *right = create_node(header->next_node_rrn, node, left->is_leaf);
   // divide old node
   int half = ceil((ORDER - 1) / 2.0);
   left->n_keys = half;
@@ -345,11 +346,13 @@ record_t *btree_find_node(FILE *file, btree_index_header_t *header, node_t *node
  * @param header
  */
 void write_index_header(FILE *file, btree_index_header_t *header) {
+  char empty_pointer = '@';
+  char status = format_status_bool(header->status);
   fseek(file, 0, SEEK_SET);
-  fwrite(format_status_bool(header->status), 1, 1, file);
+  fwrite(&status, 1, 1, file);
   fwrite(&header->root_node_rrn, 4, 1, file);
   fwrite(&header->next_node_rrn, 4, 1, file);
-  fwrite("@", 1, 68, file);
+  fwrite(&empty_pointer, 1, 68, file);
 }
 
 /**
@@ -359,29 +362,30 @@ void write_index_header(FILE *file, btree_index_header_t *header) {
  * @param node
  */
 void write_index_node(FILE *file, node_t *node) {
-  int seek = fseek(file, BYTE_OFFSET(node->rrn), SEEK_SET);
-  int null_pointer = -1;
-  fwrite(format_status_bool(node->is_leaf), 1, 1, file);
+  int empty_pointer = -1;
+  char is_leaf = format_status_bool(node->is_leaf);
+  // nkeys = 3
+  // 1 + 4 + 4 +
+  fseek(file, BYTE_OFFSET(node->rrn), SEEK_SET);
+  fwrite(&is_leaf, 1, 1, file);
   fwrite(&node->n_keys, 4, 1, file);
   fwrite(&node->rrn, 4, 1, file);
 
   // write records and pointers
-  if (node->is_leaf) fwrite(&null_pointer, 4, 1, file);
+  if (node->is_leaf) fwrite(&empty_pointer, 4, 1, file);
   else fwrite(&node->children_rrn[0], 4, 1, file);
 
   for (int i = 0; i < node->n_keys; i++) {
     fwrite(&node->records[i].key, 4, 1, file);
     fwrite(&node->records[i].value, 8, 1, file);
-    if (node->is_leaf) fwrite(&null_pointer, 4, 1, file);
-    else fwrite(&node->children_rrn[i + 1], 4, 1, file);
+    fwrite(&node->children_rrn[i + 1], 4, 1, file);
   }
 
-  // write empty records and pointers
-//  for (int i = node->n_keys; i < ORDER; i++) {
-//    fwrite(&null_pointer, 4, 1, file);
-//    fwrite(&null_pointer, 8, 1, file);
-//    fwrite(&null_pointer, 4, 1, file);
-//  }
+  for (int i = node->n_keys; i < ORDER - 1; i++) {
+    fwrite(&empty_pointer, 4, 1, file);
+    fwrite(&empty_pointer, 8, 1, file);
+    fwrite(&empty_pointer, 4, 1, file);
+  }
 }
 
 /**
@@ -400,7 +404,7 @@ btree_index_header_t *read_index_header(FILE *file) {
 }
 
 node_t *read_index_node(FILE *file, int rrn, node_t *parent) {
-  node_t *node = malloc(sizeof(node_t));
+  node_t *node = create_node(rrn, parent, false);
   fseek(file, BYTE_OFFSET(rrn), SEEK_SET);
   char buffer;
   fread(&buffer, 1, 1, file);

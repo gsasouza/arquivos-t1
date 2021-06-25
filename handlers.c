@@ -276,7 +276,7 @@ void insert_on_lines(char filename[], int n) {
  * Create index from vehicle file
  */
 void create_index_vehicles(char filename[], char filename_index[]) {
-  vehicle_t v;
+//  FILE *index_test = open_file("indicePrefixo12.bin", "rb");
   FILE *index_file = open_file(filename_index, "wb+");
   FILE *bin_file = open_file(filename, "rb");
   btree_index_header_t *index_header = init_index_file(index_file);
@@ -291,16 +291,23 @@ void create_index_vehicles(char filename[], char filename_index[]) {
     fclose(bin_file);
     return;
   }
-  for (int i = 0; i < header.count; i++) {
+  int c = 0;
+  for ( int i = 0; i < header.count + 52; i++) {
     size_t current_offset = ftell(bin_file);
     vehicle_t vehicle = read_vehicle(bin_file, 0);
     if (vehicle.removed != '0') {
+      c++;
       btree_insert(index_file, index_header, convertePrefixo(vehicle.prefix), current_offset);
     }
   }
 
+  index_header->status = '1';
+  write_index_header(index_file, index_header);
+  print_in_order(index_file);
+//  print_in_order(index_test);
   fclose(bin_file);
   fclose(index_file);
+//  fclose(index_test);
 }
 
 /*
