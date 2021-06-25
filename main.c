@@ -8,13 +8,13 @@
 
 
 int main() {
-  FILE *bin_file = open_file("TESTE", "wb+");
-  btree_index_header_t *header = init_index_file(bin_file);
-  btree_insert(bin_file, header, 'C', 100);
-  btree_insert(bin_file, header, 'S', 100);
-  btree_insert(bin_file, header, 'D', 100);
-  btree_insert(bin_file, header, 'T', 100);
-  btree_insert(bin_file, header, 'A', 100);
+//  FILE *bin_file = open_file("TESTE", "wb+");
+//  btree_index_header_t *header = init_index_file(bin_file);
+//  btree_insert(bin_file, header, 'C', 100);
+//  btree_insert(bin_file, header, 'S', 100);
+//  btree_insert(bin_file, header, 'D', 100);
+//  btree_insert(bin_file, header, 'T', 100);
+//  btree_insert(bin_file, header, 'A', 100);
 //  btree_insert(bin_file, header, 'M', 100);
 //  btree_insert(bin_file, header, 'P', 100);
 //  btree_insert(bin_file, header, 'I', 100);
@@ -37,9 +37,9 @@ int main() {
 //  btree_insert(bin_file, header, 'Z', 100);
 //  btree_insert(bin_file, header, 'Y', 100);
 
-  fclose(bin_file);
-  bin_file = open_file("TESTE", "r");
-  print_in_order(bin_file);
-//  parse_input();
+//  fclose(bin_file);
+//  bin_file = open_file("TESTE", "r");
+//  print_in_order(bin_file);
+  parse_input();
   return 0;
 }

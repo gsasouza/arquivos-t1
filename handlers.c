@@ -292,17 +292,12 @@ void create_index_vehicles(char filename[], char filename_index[]) {
     fclose(bin_file);
     return;
   }
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i <400; i++) {
     size_t current_offset = ftell(bin_file);
     vehicle_t vehicle = read_vehicle(bin_file, 0);
     if (i == 65) v = vehicle;
     if (vehicle.removed != '0') {
-      c++;
-//      if (i == 38) {
-//        btree_insert(index_file, index_header, convertePrefixo(vehicle.prefix), current_offset);
-//      }
       btree_insert(index_file, index_header, convertePrefixo(vehicle.prefix), current_offset);
-
     }
   }
 

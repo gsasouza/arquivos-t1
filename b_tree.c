@@ -432,7 +432,7 @@ void print_in_order_internal(FILE *file, node_t *node) {
   if (!node->is_leaf) print_in_order_internal(file, read_index_node(file, node->children_rrn[0], NULL));
 
   for (int i = 0; i < node->n_keys; i++) {
-    printf("%c ", node->records[i].key);
+    printf("%d \n", node->records[i].key);
     if (!node->is_leaf) print_in_order_internal(file, read_index_node(file, node->children_rrn[i + 1], NULL));
 
   }
