@@ -124,7 +124,7 @@ void split_node(FILE *file, btree_index_header_t *header, node_t *node) {
   // move keys from left to right
   move_records_asc(right, left, 0, right->n_keys, 0, half + 1);
   if (!left->is_leaf) {
-    move_children_asc(right, left, 0, half, 0, half);
+    move_children_asc(right, left, 0, right->n_keys + 1, 0, half + 1);
   }
 
   // find position to promote key

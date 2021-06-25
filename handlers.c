@@ -277,7 +277,6 @@ void insert_on_lines(char filename[], int n) {
  */
 void create_index_vehicles(char filename[], char filename_index[]) {
   vehicle_t v;
-  int c = 0;
   FILE *index_file = open_file(filename_index, "wb+");
   FILE *bin_file = open_file(filename, "rb");
   btree_index_header_t *index_header = init_index_file(index_file);
@@ -292,23 +291,15 @@ void create_index_vehicles(char filename[], char filename_index[]) {
     fclose(bin_file);
     return;
   }
-  for (int i = 0; i <400; i++) {
+  for (int i = 0; i < header.count; i++) {
     size_t current_offset = ftell(bin_file);
     vehicle_t vehicle = read_vehicle(bin_file, 0);
-    if (i == 65) v = vehicle;
     if (vehicle.removed != '0') {
       btree_insert(index_file, index_header, convertePrefixo(vehicle.prefix), current_offset);
     }
   }
 
   fclose(bin_file);
-  fclose(index_file);
-  index_file = open_file(filename_index, "rb");
-  node_t *node = read_index_node(index_file, index_header->root_node_rrn, NULL);
-  record_t *record = btree_find_node(index_file, index_header, node, convertePrefixo(v.prefix));
-//  node = read_index_node(index_file, 1, NULL);
-//  node = read_index_node(index_file, 2, NULL);
-  print_in_order(index_file);
   fclose(index_file);
 }
 
