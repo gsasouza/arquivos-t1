@@ -47,6 +47,8 @@ char *invert_remove(char removed);
 
 void scan_quote_string(char *str);
 
-char *format_status_bool (bool status);
+char format_status_bool(bool status);
+
+int convertePrefixo(char* str);
  
 #endif //T1_HELPERS_H

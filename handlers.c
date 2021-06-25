@@ -270,7 +270,44 @@ void insert_on_lines(char filename[], int n) {
   write_line_header(bin_file, header); //updates the header
   fclose(bin_file);
   binarioNaTela(filename);
+}
 
+/*
+ * Create index from vehicle file
+ */
+void create_index_vehicles(char filename[], char filename_index[]) {
+//  FILE *index_test = open_file("indicePrefixo12.bin", "rb");
+  FILE *index_file = open_file(filename_index, "wb+");
+  FILE *bin_file = open_file(filename, "rb");
+  btree_index_header_t *index_header = init_index_file(index_file);
+  vehicle_header_t header = read_vehicle_header(bin_file);
+  if (header.status == '0') { //if file is not consistent
+    printf(ERROR_MESSAGE);
+    fclose(bin_file);
+    return;
+  }
+  if (header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(bin_file);
+    return;
+  }
+  int c = 0;
+  for ( int i = 0; i < header.count + 52; i++) {
+    size_t current_offset = ftell(bin_file);
+    vehicle_t vehicle = read_vehicle(bin_file, 0);
+    if (vehicle.removed != '0') {
+      c++;
+      btree_insert(index_file, index_header, convertePrefixo(vehicle.prefix), current_offset);
+    }
+  }
+
+  index_header->status = '1';
+  write_index_header(index_file, index_header);
+  print_in_order(index_file);
+//  print_in_order(index_test);
+  fclose(bin_file);
+  fclose(index_file);
+//  fclose(index_test);
 }
 
 /*
@@ -278,47 +315,52 @@ void insert_on_lines(char filename[], int n) {
  */
 void parse_input() {
   int option, new_entries_count;
-  char filename_in[30], filename_out[30], fieldname[30], value[30];
+  char string_arg_1[30], string_arg_2[30], string_arg_3[30];
   scanf("%d", &option);
   switch (option) {
     case 1:
-      scanf("%s %s", filename_in, filename_out);
-      create_table_vehicle(filename_in, filename_out);
-      binarioNaTela(filename_out);
+      scanf("%s %s", string_arg_1, string_arg_2);
+      create_table_vehicle(string_arg_1, string_arg_2);
+      binarioNaTela(string_arg_2);
       break;
     case 2:
-      scanf("%s %s", filename_in, filename_out);
-      create_table_line(filename_in, filename_out);
-      binarioNaTela(filename_out);
+      scanf("%s %s", string_arg_1, string_arg_2);
+      create_table_line(string_arg_1, string_arg_2);
+      binarioNaTela(string_arg_2);
       break;
     case 3:
-      scanf("%s", filename_in);
-      select_from_vehicles(filename_in);
+      scanf("%s", string_arg_1);
+      select_from_vehicles(string_arg_1);
       break;
     case 4:
-      scanf("%s", filename_in);
-      select_from_lines(filename_in);
+      scanf("%s", string_arg_1);
+      select_from_lines(string_arg_1);
       break;
     case 5:
-      scanf("%s %s", filename_in, fieldname);
-      scan_quote_string(value);
-      find_from_vehicles(filename_in, fieldname, value);
+      scanf("%s %s", string_arg_1, string_arg_2);
+      scan_quote_string(string_arg_3);
+      find_from_vehicles(string_arg_1, string_arg_2, string_arg_3);
       break;
     case 6:
-      scanf("%s %s", filename_in, fieldname);
-      scan_quote_string(value);
-      find_from_lines(filename_in, fieldname, value);
+      scanf("%s %s", string_arg_1, string_arg_2);
+      scan_quote_string(string_arg_3);
+      find_from_lines(string_arg_1, string_arg_2, string_arg_3);
       break;
     case 7:
-      scanf("%s %d", filename_in, &new_entries_count);
-      insert_on_vehicles(filename_in, new_entries_count);
+      scanf("%s %d", string_arg_1, &new_entries_count);
+      insert_on_vehicles(string_arg_1, new_entries_count);
       break;
     case 8:
-      scanf("%s %d", filename_in, &new_entries_count);
-      insert_on_lines(filename_in, new_entries_count);
-      return;
+      scanf("%s %d", string_arg_1, &new_entries_count);
+      insert_on_lines(string_arg_1, new_entries_count);
+      break;
+    case 9:
+      scanf("%s %s", string_arg_1, string_arg_2);
+      create_index_vehicles(string_arg_1, string_arg_2);
+      binarioNaTela(string_arg_2);
+      break;
     default:
       printf(ERROR_MESSAGE);
-      return;
+      break;
   }
 }

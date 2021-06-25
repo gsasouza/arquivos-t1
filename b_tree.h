@@ -13,7 +13,9 @@
 #include "queue.h"
 #include "helpers.h"
 
+#define ORDER 5
 #define DISK_PAGE_SIZE 77
+#define BYTE_OFFSET(rnn) (((rnn) + 1) * DISK_PAGE_SIZE)
 
 /**
  * key, value pair that will be stored
@@ -29,43 +31,40 @@ typedef struct record {
 typedef struct node {
   int rrn; // rnn for this node
   bool is_leaf; // is leaf node
-  bool is_loaded; // store if node needs to be loaded from file
-  int n_keys; // records stored in this node
-  record_t **records; // records data
-  struct node **children; // node children
-  struct node *parent; // node parent
+  int n_keys; // number of records stored in this node
+  struct node *child; // store child node so we can do a backtrack
+  struct node *parent; // store parent node so we can do a backtrack
+  record_t records[ORDER]; // store records data in this node
+  int children_rrn[ORDER]; // store children rrn for this node
 } node_t;
 
-typedef struct btree {
-  int n_records; // number of records stored in tree
-  int order; // btree order
-  node_t *root; // root pointer
-} btree_t;
-
+/**
+ * index header
+ */
 typedef struct btree_index_header {
-  int status;
-  int root_node_rrn;
-  int next_node_rrn;
+  bool status; // header status
+  int root_node_rrn; // rrn of root node
+  int next_node_rrn; // store how many nodes we have in the index
 } btree_index_header_t;
 
-btree_t *create_btree(int order);
+void btree_insert(FILE* file,  btree_index_header_t *header,int key, long value);
 
-void btree_insert(btree_t *btree, int key, long value);
+void print_by_level(FILE* file);
 
-void print_by_level(btree_t *btree);
-
-record_t *btree_find_node(node_t *node, int key);
+void print_in_order(FILE* file);
 
 void write_index_header(FILE* file, btree_index_header_t* header);
 
-void write_index_node(FILE* file, btree_t *btree, node_t *node);
+void write_index_node(FILE* file, node_t *node);
 
 btree_index_header_t *read_index_header(FILE *file);
 
-node_t *read_index_node(FILE *file, int order, node_t* parent, node_t* node);
+node_t *read_index_node(FILE *file, int rrn, node_t* parent);
 
-btree_index_header_t *create_btree_index_header(btree_t *btree);
+btree_index_header_t *create_btree_index_header();
 
-node_t *create_disk_node(int rnn, node_t *parent, int order, bool is_leaf);
+record_t *btree_find_node(FILE* file, btree_index_header_t *header, node_t* node, int key);
+
+btree_index_header_t *init_index_file(FILE *file);
 
 #endif //T1_B_TREE_H

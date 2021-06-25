@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include "vehicle.h"
 #include "line.h"
+#include "b_tree.h"
 
 void parse_input();
 
