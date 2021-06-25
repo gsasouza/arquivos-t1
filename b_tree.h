@@ -13,9 +13,9 @@
 #include "queue.h"
 #include "helpers.h"
 
-#define ORDER 4
+#define ORDER 5
 #define DISK_PAGE_SIZE 77
-#define BYTE_OFFSET(rnn) (rnn + 1) * DISK_PAGE_SIZE
+#define BYTE_OFFSET(rnn) (((rnn) + 1) * DISK_PAGE_SIZE)
 
 /**
  * key, value pair that will be stored
@@ -51,6 +51,8 @@ void btree_insert(FILE* file,  btree_index_header_t *header,int key, long value)
 
 void print_by_level(FILE* file);
 
+void print_in_order(FILE* file);
+
 void write_index_header(FILE* file, btree_index_header_t* header);
 
 void write_index_node(FILE* file, node_t *node);
@@ -62,5 +64,7 @@ node_t *read_index_node(FILE *file, int rrn, node_t* parent);
 btree_index_header_t *create_btree_index_header();
 
 record_t *btree_find_node(FILE* file, btree_index_header_t *header, node_t* node, int key);
+
+btree_index_header_t *init_index_file(FILE *file);
 
 #endif //T1_B_TREE_H
