@@ -4,7 +4,6 @@
  */
 #include "b_tree.h"
 
-
 void btree_insert_internal(FILE *file, btree_index_header_t *header, node_t *node, record_t *record);
 
 /**
@@ -93,6 +92,13 @@ void move_children_desc(node_t *to, node_t *from, int begin, int end, int paddin
   }
 }
 
+/**
+ * create a new node
+ * @param rnn - node rrn
+ * @param parent - node parent
+ * @param is_leaf - if node is a leaf node
+ * @return
+ */
 node_t *create_node(int rnn, node_t *parent, bool is_leaf) {
   node_t *node = malloc(sizeof(node_t));
   node->rrn = rnn;
@@ -100,13 +106,21 @@ node_t *create_node(int rnn, node_t *parent, bool is_leaf) {
   node->is_leaf = is_leaf;
   node->parent = parent;
   node->child = NULL;
+  node->children_rrn[0] = -1;
+  for (int i = 0; i < ORDER - 1; i++) {
+    node->records[i].key = -1;
+    node->records[i].value = -1;
+    node->children_rrn[i + 1] = -1;
+  }
+
   return node;
 }
 
 /**
  * splits node with overflow in two new nodes
+ * @param file - index file
+ * @param header - index header
  * @param node - current node
- * @param order - btree order
  */
 void split_node(FILE *file, btree_index_header_t *header, node_t *node) {
   node_t *parent = node->parent;
@@ -117,6 +131,7 @@ void split_node(FILE *file, btree_index_header_t *header, node_t *node) {
   node_t *left = node;
   header->next_node_rrn++;
   node_t *right = create_node(header->next_node_rrn, node, left->is_leaf);
+
   // divide old node
   int half = ceil((ORDER - 1) / 2.0);
   left->n_keys = half;
@@ -153,15 +168,17 @@ void split_node(FILE *file, btree_index_header_t *header, node_t *node) {
   if (parent->n_keys == ORDER) return split_node(file, header, parent);
   else write_index_node(file, parent);
 
+  // clean up
   free(left);
   free(right);
 }
 
 /**
  * insert new key in a leaf node
+ * @param file - index file
+ * @param header - index header
  * @param node - current node
  * @param record - record to be inserted
- * @param order - btree order
  */
 void btree_insert_leaf(FILE *file, btree_index_header_t *header, node_t *node, record_t *record) {
 
@@ -188,9 +205,10 @@ void btree_insert_leaf(FILE *file, btree_index_header_t *header, node_t *node, r
 
 /**
  * traverse the tree searching a leaf node to insert new record
+ * @param file - index file
+ * @param header - index header
  * @param node - current node
  * @param record - record to be inserted
- * @param order - btree order
  */
 void btree_insert_nonleaf(FILE *file, btree_index_header_t *header, node_t *node, record_t *record) {
   int position = node->n_keys - 1;
@@ -211,9 +229,10 @@ void btree_insert_nonleaf(FILE *file, btree_index_header_t *header, node_t *node
 
 /**
  * Internal driver to decide if we need to search node or we are already in a node and can insert the record
+ * @param file - index file
+ * @param header - index header
  * @param node - current node
  * @param record - record to be inserted
- * @param order - btree order
  */
 void btree_insert_internal(FILE *file, btree_index_header_t *header, node_t *node, record_t *record) {
   if (node->is_leaf) return btree_insert_leaf(file, header, node, record);
@@ -222,7 +241,9 @@ void btree_insert_internal(FILE *file, btree_index_header_t *header, node_t *nod
 
 /**
  * Splits a btree root
- * @param btree
+ * @param file - index file
+ * @param header - index header
+ * @param root_node - root node
  */
 void split_root(FILE *file, btree_index_header_t *header, node_t *root_node) {
   // start new nodes
@@ -269,9 +290,10 @@ void split_root(FILE *file, btree_index_header_t *header, node_t *root_node) {
 
 /**
  * Add a new record in btree
- * @param btree
- * @param key - record key
- * @param value - record value
+ * @param file - index file
+ * @param header - index header
+ * @param key - new key
+ * @param value - new value
  */
 void btree_insert(FILE *file, btree_index_header_t *header, int key, long value) {
   record_t *record = create_record(key, value);
@@ -283,34 +305,10 @@ void btree_insert(FILE *file, btree_index_header_t *header, int key, long value)
   free(record);
 }
 
-void print_by_level(FILE *file) {
-  queue_node_t *current;
-  queue_t *queue = create_queue();
-  btree_index_header_t *header = read_index_header(file);
-  node_t *btree_node = read_index_node(file, header->root_node_rrn, NULL);
-  if (btree_node->n_keys == 0) {
-    printf("Empty tree.\n");
-    return;
-  }
-
-  enqueue(queue, create_queue_node(btree_node));
-  printf("| ");
-  while (queue->start != NULL) {
-    current = dequeue(queue);
-    btree_node = current->data;
-    printf("(%d) ", btree_node->rrn);
-    for (int i = 0; i < btree_node->n_keys; i++) {
-      printf("%d ", btree_node->records[i].key);
-    }
-    printf("| ");
-    if (!btree_node->is_leaf) {
-      for (int i = 0; i <= btree_node->n_keys; i++) {
-        enqueue(queue, create_queue_node(read_index_node(file, btree_node->children_rrn[i], btree_node)));
-      }
-    }
-  }
-}
-
+/**
+ * create btree index header
+ * @return - index header
+ */
 btree_index_header_t *create_btree_index_header() {
   btree_index_header_t *header = malloc(sizeof(btree_index_header_t));
   header->status = true;
@@ -319,7 +317,14 @@ btree_index_header_t *create_btree_index_header() {
   return header;
 }
 
-
+/**
+ * find key in btree
+ * @param file - index file
+ * @param header - index header
+ * @param node - current node
+ * @param key - search key
+ * @return - found record or NULL
+ */
 record_t *btree_find_node(FILE *file, btree_index_header_t *header, node_t *node, int key) {
   // found
   record_t *record = find_key_in_node(node, key);
@@ -352,7 +357,7 @@ void write_index_header(FILE *file, btree_index_header_t *header) {
   fwrite(&status, 1, 1, file);
   fwrite(&header->root_node_rrn, 4, 1, file);
   fwrite(&header->next_node_rrn, 4, 1, file);
-  fwrite(&empty_pointer, 1, 68, file);
+  for (int i = 0; i < 68; i++) fwrite(&empty_pointer, 1, 1, file);
 }
 
 /**
@@ -362,10 +367,9 @@ void write_index_header(FILE *file, btree_index_header_t *header) {
  * @param node
  */
 void write_index_node(FILE *file, node_t *node) {
+  if (node->n_keys == ORDER) return;
   int empty_pointer = -1;
   char is_leaf = format_status_bool(node->is_leaf);
-  // nkeys = 3
-  // 1 + 4 + 4 +
   fseek(file, BYTE_OFFSET(node->rrn), SEEK_SET);
   fwrite(&is_leaf, 1, 1, file);
   fwrite(&node->n_keys, 4, 1, file);
@@ -374,23 +378,24 @@ void write_index_node(FILE *file, node_t *node) {
   // write records and pointers
   if (node->is_leaf) fwrite(&empty_pointer, 4, 1, file);
   else fwrite(&node->children_rrn[0], 4, 1, file);
-
   for (int i = 0; i < node->n_keys; i++) {
     fwrite(&node->records[i].key, 4, 1, file);
     fwrite(&node->records[i].value, 8, 1, file);
-    fwrite(&node->children_rrn[i + 1], 4, 1, file);
+    if (node->is_leaf) fwrite(&empty_pointer, 4, 1, file);
+    else fwrite(&node->children_rrn[i + 1], 4, 1, file);
   }
 
   for (int i = node->n_keys; i < ORDER - 1; i++) {
     fwrite(&empty_pointer, 4, 1, file);
-    fwrite(&empty_pointer, 8, 1, file);
+    fwrite(&empty_pointer, 4, 1, file);
+    fwrite(&empty_pointer, 4, 1, file);
     fwrite(&empty_pointer, 4, 1, file);
   }
 }
 
 /**
- *
- * @param file
+ * read index header from file
+ * @param file - index file
  */
 btree_index_header_t *read_index_header(FILE *file) {
   fseek(file, 0, SEEK_SET);
@@ -403,6 +408,13 @@ btree_index_header_t *read_index_header(FILE *file) {
   return header;
 }
 
+/**
+ * read index node from file
+ * @param file - index file
+ * @param rrn - node rrn
+ * @param parent - node parent
+ * @return read node
+ */
 node_t *read_index_node(FILE *file, int rrn, node_t *parent) {
   node_t *node = create_node(rrn, parent, false);
   fseek(file, BYTE_OFFSET(rrn), SEEK_SET);
@@ -424,25 +436,36 @@ node_t *read_index_node(FILE *file, int rrn, node_t *parent) {
   return node;
 }
 
+/**
+ * init index file
+ * @param file - index file pointer
+ * @return header from new file
+ */
 btree_index_header_t *init_index_file(FILE *file) {
-  fseek(file, 0, SEEK_SET);
   btree_index_header_t *header = create_btree_index_header();
-  header->status = false;
+  header->status = true;
   write_index_header(file, header);
   return header;
 }
 
+/**
+ * driver for btree in order pront
+ * @param file - index file
+ * @param node - current node
+ */
 void print_in_order_internal(FILE *file, node_t *node) {
   if (!node->is_leaf) print_in_order_internal(file, read_index_node(file, node->children_rrn[0], NULL));
 
   for (int i = 0; i < node->n_keys; i++) {
     printf("%d \n", node->records[i].key);
     if (!node->is_leaf) print_in_order_internal(file, read_index_node(file, node->children_rrn[i + 1], NULL));
-
   }
-
 }
 
+/**
+ * print btree in order
+ * @param file - index file
+ */
 void print_in_order(FILE *file) {
   btree_index_header_t *header = read_index_header(file);
   return print_in_order_internal(file, read_index_node(file, header->root_node_rrn, NULL));

@@ -49,8 +49,6 @@ typedef struct btree_index_header {
 
 void btree_insert(FILE* file,  btree_index_header_t *header,int key, long value);
 
-void print_by_level(FILE* file);
-
 void print_in_order(FILE* file);
 
 void write_index_header(FILE* file, btree_index_header_t* header);

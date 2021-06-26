@@ -95,7 +95,8 @@ void add_end_to_vehicle_fields(vehicle_t *vehicle) {
 /* *
  * Read vehicle from bin file
  */
-vehicle_t read_vehicle(FILE *file, int offset) {
+vehicle_t read_vehicle(FILE *file, long offset) {
+  if (offset != 0) fseek(file, offset, SEEK_SET);
   vehicle_t *new_vehicle = malloc(sizeof(vehicle_t));
   fread(&new_vehicle->removed, 1, 1, file);
   fread(&new_vehicle->size, 4, 1, file);

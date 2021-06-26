@@ -45,7 +45,7 @@ void write_line(FILE *file, line_t line);
 
 line_header_t read_line_header(FILE *file);
 
-line_t read_line(FILE *file, int offset);
+line_t read_line(FILE *file, long offset);
 
 line_header_t read_line_header_from_csv(char line[]);
 
