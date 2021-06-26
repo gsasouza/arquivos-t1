@@ -276,7 +276,6 @@ void insert_on_lines(char filename[], int n) {
  * Create index from vehicle file
  */
 void create_index_vehicles(char filename[], char filename_index[]) {
-//  FILE *index_test = open_file("indicePrefixo12.bin", "rb");
   FILE *index_file = open_file(filename_index, "wb+");
   FILE *bin_file = open_file(filename, "rb");
   btree_index_header_t *index_header = init_index_file(index_file);
@@ -291,24 +290,91 @@ void create_index_vehicles(char filename[], char filename_index[]) {
     fclose(bin_file);
     return;
   }
-  int c = 0;
-  for ( int i = 0; i < header.count + 52; i++) {
+  for (int i = 0; i < header.count + 52; i++) {
     size_t current_offset = ftell(bin_file);
     vehicle_t vehicle = read_vehicle(bin_file, 0);
     if (vehicle.removed != '0') {
-      c++;
       btree_insert(index_file, index_header, convertePrefixo(vehicle.prefix), current_offset);
     }
   }
 
   index_header->status = '1';
+  index_header->next_node_rrn++;
   write_index_header(index_file, index_header);
-  print_in_order(index_file);
-//  print_in_order(index_test);
   fclose(bin_file);
   fclose(index_file);
-//  fclose(index_test);
+  binarioNaTela(filename_index);
 }
+
+
+/*
+ * Create index from vehicle file
+ */
+void create_index_line(char filename[], char filename_index[]) {
+  FILE *index_file = open_file(filename_index, "wb+");
+  FILE *bin_file = open_file(filename, "rb");
+  btree_index_header_t *index_header = init_index_file(index_file);
+  line_header_t header = read_line_header(bin_file);
+  if (header.status == '0') { //if file is not consistent
+    printf(ERROR_MESSAGE);
+    fclose(bin_file);
+    return;
+  }
+  if (header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(bin_file);
+    return;
+  }
+  for (int i = 0; i < header.count + header.count_removed; i++) {
+    size_t current_offset = ftell(bin_file);
+    line_t line = read_line(bin_file, 0);
+    if (line.removed != '0') {
+      btree_insert(index_file, index_header, line.line_code, current_offset);
+    }
+  }
+
+  index_header->status = '1';
+  index_header->next_node_rrn++;
+  write_index_header(index_file, index_header);
+  fclose(bin_file);
+  fclose(index_file);
+  binarioNaTela(filename_index);
+}
+
+/*
+ * Create index from vehicle file
+ */
+void select_from_vehicles_index(char filename[], char filename_index[], char prefix[]) {
+  FILE *index_file = open_file(filename_index, "rb");
+  FILE *bin_file = open_file(filename, "rb");
+  btree_index_header_t *index_header = read_index_header(index_file);
+  vehicle_header_t header = read_vehicle_header(bin_file);
+  if (header.status == '0' || index_header->status == false) { //if file is not consistent
+    printf(ERROR_MESSAGE);
+    fclose(bin_file);
+    fclose(index_file);
+    return;
+  }
+  if (header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(bin_file);
+    fclose(index_file);
+    return;
+  }
+
+  node_t *root_node = read_index_node(index_file, index_header->root_node_rrn, NULL);
+  record_t *record = btree_find_node(index_file, index_header, root_node, convertePrefixo(prefix));
+
+  if (!record) printf(EMPTY_MESSAGE);
+  else {
+    vehicle_t vehicle = read_vehicle(bin_file, record->value);
+    print_vehicle(vehicle);
+  }
+
+  fclose(bin_file);
+  fclose(index_file);
+}
+
 
 /*
  * parses input and decide what to do
@@ -357,7 +423,15 @@ void parse_input() {
     case 9:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_index_vehicles(string_arg_1, string_arg_2);
-      binarioNaTela(string_arg_2);
+      break;
+    case 10:
+      scanf("%s %s", string_arg_1, string_arg_2);
+      create_index_line(string_arg_1, string_arg_2);
+      break;
+    case 11:
+      scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
+      scan_quote_string(string_arg_3);
+      select_from_vehicles_index(string_arg_1, string_arg_2, string_arg_3);
       break;
     default:
       printf(ERROR_MESSAGE);

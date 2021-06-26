@@ -51,7 +51,7 @@ void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header);
 
 vehicle_header_t read_vehicle_header(FILE *file);
 
-vehicle_t read_vehicle(FILE *file, int offset);
+vehicle_t read_vehicle(FILE *file, long offset);
 
 vehicle_header_t read_vehicle_header_from_csv(char line[]);
 

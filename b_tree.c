@@ -100,6 +100,13 @@ node_t *create_node(int rnn, node_t *parent, bool is_leaf) {
   node->is_leaf = is_leaf;
   node->parent = parent;
   node->child = NULL;
+  node->children_rrn[0] = -1;
+  for (int i = 0; i < ORDER - 1; i++) {
+    node->records[i].key = -1;
+    node->records[i].value = -1;
+    node->children_rrn[i + 1] = -1;
+  }
+
   return node;
 }
 
@@ -352,7 +359,7 @@ void write_index_header(FILE *file, btree_index_header_t *header) {
   fwrite(&status, 1, 1, file);
   fwrite(&header->root_node_rrn, 4, 1, file);
   fwrite(&header->next_node_rrn, 4, 1, file);
-  fwrite(&empty_pointer, 1, 68, file);
+  for (int i = 0; i < 68; i++) fwrite(&empty_pointer, 1, 1, file);
 }
 
 /**
@@ -362,10 +369,9 @@ void write_index_header(FILE *file, btree_index_header_t *header) {
  * @param node
  */
 void write_index_node(FILE *file, node_t *node) {
+  if (node->n_keys == ORDER) return;
   int empty_pointer = -1;
   char is_leaf = format_status_bool(node->is_leaf);
-  // nkeys = 3
-  // 1 + 4 + 4 +
   fseek(file, BYTE_OFFSET(node->rrn), SEEK_SET);
   fwrite(&is_leaf, 1, 1, file);
   fwrite(&node->n_keys, 4, 1, file);
@@ -374,16 +380,17 @@ void write_index_node(FILE *file, node_t *node) {
   // write records and pointers
   if (node->is_leaf) fwrite(&empty_pointer, 4, 1, file);
   else fwrite(&node->children_rrn[0], 4, 1, file);
-
   for (int i = 0; i < node->n_keys; i++) {
     fwrite(&node->records[i].key, 4, 1, file);
     fwrite(&node->records[i].value, 8, 1, file);
-    fwrite(&node->children_rrn[i + 1], 4, 1, file);
+    if (node->is_leaf) fwrite(&empty_pointer, 4, 1, file);
+    else fwrite(&node->children_rrn[i + 1], 4, 1, file);
   }
 
   for (int i = node->n_keys; i < ORDER - 1; i++) {
     fwrite(&empty_pointer, 4, 1, file);
-    fwrite(&empty_pointer, 8, 1, file);
+    fwrite(&empty_pointer, 4, 1, file);
+    fwrite(&empty_pointer, 4, 1, file);
     fwrite(&empty_pointer, 4, 1, file);
   }
 }
@@ -425,9 +432,8 @@ node_t *read_index_node(FILE *file, int rrn, node_t *parent) {
 }
 
 btree_index_header_t *init_index_file(FILE *file) {
-  fseek(file, 0, SEEK_SET);
   btree_index_header_t *header = create_btree_index_header();
-  header->status = false;
+  header->status = true;
   write_index_header(file, header);
   return header;
 }
@@ -435,8 +441,10 @@ btree_index_header_t *init_index_file(FILE *file) {
 void print_in_order_internal(FILE *file, node_t *node) {
   if (!node->is_leaf) print_in_order_internal(file, read_index_node(file, node->children_rrn[0], NULL));
 
+  printf("%d \n", node->rrn);
+
   for (int i = 0; i < node->n_keys; i++) {
-    printf("%d \n", node->records[i].key);
+//    printf("%d \n", node->records[i].key);
     if (!node->is_leaf) print_in_order_internal(file, read_index_node(file, node->children_rrn[i + 1], NULL));
 
   }

@@ -127,7 +127,7 @@ char *invert_remove(char removed) {
 }
 
 char format_status_bool(bool status) {
-  if (status == 0) return '0';
+  if (status == false) return '0';
   return '1';
 }
 
