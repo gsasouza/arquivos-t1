@@ -113,7 +113,8 @@ void add_end_to_fields(line_t *line) {
 /*
  * Read line from bin file
  */
-line_t read_line(FILE *file, int offset) {
+line_t read_line(FILE *file, long offset) {
+  if (offset != 0) fseek(file, offset, SEEK_SET);
   line_t *new_line = malloc(sizeof(line_t));
   fread(&new_line->removed, 1, 1, file);
   fread(&new_line->size, 4, 1, file);

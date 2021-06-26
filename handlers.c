@@ -377,10 +377,44 @@ void select_from_vehicles_index(char filename[], char filename_index[], char pre
 
 
 /*
+ * Create index from vehicle file
+ */
+void select_from_lines_index(char filename[], char filename_index[], int line_code) {
+  FILE *index_file = open_file(filename_index, "rb");
+  FILE *bin_file = open_file(filename, "rb");
+  btree_index_header_t *index_header = read_index_header(index_file);
+  line_header_t header = read_line_header(bin_file);
+  if (header.status == '0' || index_header->status == false) { //if file is not consistent
+    printf(ERROR_MESSAGE);
+    fclose(bin_file);
+    fclose(index_file);
+    return;
+  }
+  if (header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(bin_file);
+    fclose(index_file);
+    return;
+  }
+
+  node_t *root_node = read_index_node(index_file, index_header->root_node_rrn, NULL);
+  record_t *record = btree_find_node(index_file, index_header, root_node, line_code);
+
+  if (!record) printf(EMPTY_MESSAGE);
+  else {
+    line_t line = read_line(bin_file, record->value);
+    print_line(line);
+  }
+
+  fclose(bin_file);
+  fclose(index_file);
+}
+
+/*
  * parses input and decide what to do
  */
 void parse_input() {
-  int option, new_entries_count;
+  int option, new_entries_count, int_arg_1;
   char string_arg_1[30], string_arg_2[30], string_arg_3[30];
   scanf("%d", &option);
   switch (option) {
@@ -432,6 +466,10 @@ void parse_input() {
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
       scan_quote_string(string_arg_3);
       select_from_vehicles_index(string_arg_1, string_arg_2, string_arg_3);
+      break;
+    case 12:
+      scanf("%s %s %s %d", string_arg_1, string_arg_2, string_arg_3, &int_arg_1);
+      select_from_lines_index(string_arg_1, string_arg_2, int_arg_1);
       break;
     default:
       printf(ERROR_MESSAGE);
