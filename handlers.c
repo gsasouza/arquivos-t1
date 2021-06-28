@@ -208,11 +208,15 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
 /*
  * Handle insert new vehicle on vehicle bin file
  */
-void insert_on_vehicles(char filename[], int n) {
+void insert_on_vehicles(char filename[], char filename_index[], int n) {
   FILE *bin_file = open_file(filename, "rb+");
+  FILE *index_file = open_file(filename_index, "rb+");
   vehicle_header_t header = read_vehicle_header(bin_file);
-  if (!verify_vehicle_header_status(header)) {
+  btree_index_header_t *index_header = read_index_header(index_file);
+  if (header.status == 0 || index_header->status == 0) {
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
+    fclose(index_file);
     return;
   }
 
@@ -221,55 +225,91 @@ void insert_on_vehicles(char filename[], int n) {
   fseek(bin_file, 0, SEEK_SET);
   write_vehicle_header(bin_file, header);
 
+  index_header->status = '0';
+  fseek(index_file, 0, SEEK_SET);
+  write_index_header(index_file, index_header);
+
   vehicle_t current_vehicle;
   fseek(bin_file, header.next_reg_byte, SEEK_SET); //offsets the file to where the new vehicle should be registered
+
+  size_t current_offset = 0;
   for (int i = 0; i < n; i++) {
+    current_offset = ftell(bin_file);
     current_vehicle = create_vehicle();
     write_vehicle(bin_file, current_vehicle);
+    btree_insert(index_file, index_header, convertePrefixo(current_vehicle.prefix), current_offset);
     header.count += 1;
   }
 
   // update header whit new values
   header.next_reg_byte = ftell(bin_file);
+
+  // mark as consistent as we are going to close the file
   header.status = '1';
   fseek(bin_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_vehicle_header(bin_file, header); //updates the header
+
+  index_header->status = '1';
+  fseek(index_file, 0, SEEK_SET); //offsets to the beginning of the file
+  write_index_header(index_file, index_header); //updates the header
+
   fclose(bin_file);
-  binarioNaTela(filename);
+  fclose(index_file);
+  binarioNaTela(filename_index);
 }
 
 /*
  * Handle insert new line on line bin file
  */
-void insert_on_lines(char filename[], int n) {
+void insert_on_lines(char filename[], char filename_index[], int n) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb+");
+  FILE *index_file = open_file(filename_index, "rb+");
+
   header = read_line_header(bin_file);
-  if (!verify_line_header_status(header)) { // file is incosistent
+  btree_index_header_t *index_header = read_index_header(index_file);
+  if (header.status == 0 || index_header->status == 0) {
+    printf(ERROR_MESSAGE);
     fclose(bin_file);
+    fclose(index_file);
     return;
   }
-
   // mark as inconsistent as we are going to start editing the file
   header.status = '0';
   fseek(bin_file, 0, SEEK_SET);
   write_line_header(bin_file, header);
 
+  index_header->status = '0';
+  fseek(index_file, 0, SEEK_SET);
+  write_index_header(index_file, index_header);
+
   line_t current_line;
   fseek(bin_file, header.next_reg_byte, SEEK_SET); //offsets the file to where the new vehicle should be registered
+
+  size_t current_offset = 0;
   for (int i = 0; i < n; i++) {
+    current_offset = ftell(bin_file);
     current_line = create_line();
     write_line(bin_file, current_line);
+    btree_insert(index_file, index_header, current_line.line_code, current_offset);
     header.count += 1;
   }
 
   // update header whit new values
   header.next_reg_byte = ftell(bin_file);
+
+  // mark as consistent as we are going to close the file
   header.status = '1';
   fseek(bin_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_line_header(bin_file, header); //updates the header
+
+  index_header->status = '1';
+  fseek(index_file, 0, SEEK_SET); //offsets to the beginning of the file
+  write_index_header(index_file, index_header); //updates the header
+
   fclose(bin_file);
-  binarioNaTela(filename);
+  fclose(index_file);
+  binarioNaTela(filename_index);
 }
 
 /*
@@ -490,11 +530,11 @@ void parse_input() {
       break;
     case 7:
       scanf("%s %d", string_arg_1, &new_entries_count);
-      insert_on_vehicles(string_arg_1, new_entries_count);
+      insert_on_vehicles(string_arg_1, NULL, new_entries_count);
       break;
     case 8:
       scanf("%s %d", string_arg_1, &new_entries_count);
-      insert_on_lines(string_arg_1, new_entries_count);
+      insert_on_lines(string_arg_1, NULL, new_entries_count);
       break;
     case 9:
       scanf("%s %s", string_arg_1, string_arg_2);
@@ -513,6 +553,14 @@ void parse_input() {
       scanf("%s %s %s %d", string_arg_1, string_arg_2, string_arg_3, &int_arg_1);
       select_from_lines_index(string_arg_1, string_arg_2, int_arg_1);
       break;
+    case 13:
+        scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
+        insert_on_vehicles(string_arg_1, string_arg_2, int_arg_1);
+        break;
+    case 14:
+        scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
+        insert_on_lines(string_arg_1, string_arg_2, int_arg_1);
+        break;
     default:
       printf(ERROR_MESSAGE);
       break;
