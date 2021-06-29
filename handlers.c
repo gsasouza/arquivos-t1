@@ -268,6 +268,7 @@ void insert_on_lines(char filename[], char filename_index[], int n) {
 
   header = read_line_header(bin_file);
   btree_index_header_t *index_header = read_index_header(index_file);
+
   if (header.status == 0 || index_header->status == 0) {
     printf(ERROR_MESSAGE);
     fclose(bin_file);
@@ -303,7 +304,7 @@ void insert_on_lines(char filename[], char filename_index[], int n) {
   fseek(bin_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_line_header(bin_file, header); //updates the header
 
-  index_header->status = '1';
+  index_header->status = true;
   fseek(index_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_index_header(index_file, index_header); //updates the header
 
@@ -337,7 +338,7 @@ void create_index_vehicles(char filename[], char filename_index[]) {
   }
 
   // read all vehicles and add to btree index (+52 is here to fix probably an error in bin file)
-  for (int i = 0; i < header.count + 52; i++) {
+  for (int i = 0; i < header.count + header.count_removed; i++) {
     size_t current_offset = ftell(bin_file);
     vehicle_t vehicle = read_vehicle(bin_file, 0);
     if (vehicle.removed != '0') {
@@ -347,7 +348,6 @@ void create_index_vehicles(char filename[], char filename_index[]) {
 
   // update index header
   index_header->status = true;
-  index_header->next_node_rrn++;
   write_index_header(index_file, index_header);
 
   // close
@@ -394,7 +394,6 @@ void create_index_line(char filename[], char filename_index[]) {
 
   // update btree index
   index_header->status = true;
-  index_header->next_node_rrn++;
   write_index_header(index_file, index_header);
 
   // close files

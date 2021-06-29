@@ -129,8 +129,8 @@ void split_node(FILE *file, btree_index_header_t *header, node_t *node) {
 
   // create new nodes
   node_t *left = node;
-  header->next_node_rrn++;
   node_t *right = create_node(header->next_node_rrn, node, left->is_leaf);
+  header->next_node_rrn++;
 
   // divide old node
   int half = ceil((ORDER - 1) / 2.0);
@@ -248,10 +248,10 @@ void btree_insert_internal(FILE *file, btree_index_header_t *header, node_t *nod
 void split_root(FILE *file, btree_index_header_t *header, node_t *root_node) {
   // start new nodes
   node_t *left = root_node;
-  header->next_node_rrn++;
   node_t *right = create_node(header->next_node_rrn, root_node, left->is_leaf);
   header->next_node_rrn++;
   node_t *new_root = create_node(header->next_node_rrn, NULL, false);
+  header->next_node_rrn++;
 
   // assign splitted nodes to new root
   right->parent = new_root;
@@ -273,7 +273,6 @@ void split_root(FILE *file, btree_index_header_t *header, node_t *root_node) {
   move_children_asc(right, left, 0, right->n_keys + 1, 0, half + 1);
 
   // write to file
-
   write_index_node(file, left);
   write_index_node(file, right);
   write_index_node(file, new_root);
@@ -431,7 +430,6 @@ node_t *read_index_node(FILE *file, int rrn, node_t *parent) {
     fread(&node->records[i].value, 8, 1, file);
     fread(&node->children_rrn[i + 1], 4, 1, file);
   }
-  // @TODO remove this
   node->child = malloc(sizeof(node_t *));
   return node;
 }
@@ -443,8 +441,11 @@ node_t *read_index_node(FILE *file, int rrn, node_t *parent) {
  */
 btree_index_header_t *init_index_file(FILE *file) {
   btree_index_header_t *header = create_btree_index_header();
+  node_t* root_node = create_node(0, NULL, true);
+  header->next_node_rrn++;
   header->status = true;
   write_index_header(file, header);
+  write_index_node(file, root_node);
   return header;
 }
 

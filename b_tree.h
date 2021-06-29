@@ -10,7 +10,6 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdio.h>
-#include "queue.h"
 #include "helpers.h"
 
 #define ORDER 5
