@@ -120,17 +120,22 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
   vehicle_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_vehicle_header(bin_file);
-  if (header.status == '0') { //if file is not consistent
+
+  //Checking for inconsistencies
+  if (header.status == '0') {
     printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   }
+
   vehicle_t current_vehicle;
   int found = 0;  //its used to know if it should print a vehicle
   int found_total = 0;
   for (int i = 0; i < (header.count + header.count_removed); i++) {
     current_vehicle = read_vehicle(bin_file, 0);
-    if (current_vehicle.removed == '1') {  //if the register was not removed
+    //if the register was not removed
+    if (current_vehicle.removed == '1') {
+      //Checking where to search
       switch (fieldname[0]) {
         case 'p': //prefixo
           if (strcmp(current_vehicle.prefix, value) == 0) found = 1;
@@ -148,14 +153,18 @@ void find_from_vehicles(char filename[], char fieldname[], char value[]) {
           if (strcmp(current_vehicle.category, value) == 0) found = 1;
           break;
       }
-      if (found == 1) {  //if found a match
+
+      //if a match was found
+      if (found == 1) {
         print_vehicle(current_vehicle);
         found_total++;    //updates
         found = 0;
       }
     }
   }
-  if (found_total == 0) //if it never found any vehicles that match
+
+  //if it never found any vehicles that match
+  if (found_total == 0)
     printf(EMPTY_MESSAGE);
   fclose(bin_file);
 }
@@ -168,17 +177,23 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
   line_header_t header;
   FILE *bin_file = open_file(filename, "rb");
   header = read_line_header(bin_file);
-  if (header.status == '0') { //if file is not consistent
+
+  //Checking for inconsistencies
+  if (header.status == '0') {
     printf(ERROR_MESSAGE);
     fclose(bin_file);
     return;
   }
+
   line_t current_line;
   int found = 0;  //its used to know if it should print a vehicle
   int found_total = 0;
+
   for (int i = 0; i < (header.count + header.count_removed); i++) {
     current_line = read_line(bin_file, 0);
-    if (current_line.removed == '1') {  //if the register was not removed
+    //if the register was not removed
+    if (current_line.removed == '1') {
+      //Checking where to search
       switch (fieldname[2]) {
         case 'd': //codLinha
           if (current_line.line_code == atoi(value)) found = 1;
@@ -193,7 +208,9 @@ void find_from_lines(char filename[], char fieldname[], char value[]) {
           if (strcmp(current_line.color, value) == 0) found = 1;
           break;
       }
-      if (found == 1) {  //if found a match
+
+      //if a match was found
+      if (found == 1) {
         print_line(current_line);
         found_total++;    //updates
         found = 0;
@@ -213,6 +230,8 @@ void insert_on_vehicles(char filename[], char filename_index[], int n) {
   FILE *index_file = open_file(filename_index, "rb+");
   vehicle_header_t header = read_vehicle_header(bin_file);
   btree_index_header_t *index_header = read_index_header(index_file);
+
+  //Checking for inconsistencies
   if (header.status == 0 || index_header->status == 0) {
     printf(ERROR_MESSAGE);
     fclose(bin_file);
@@ -222,15 +241,18 @@ void insert_on_vehicles(char filename[], char filename_index[], int n) {
 
   // mark as inconsistent as we are going to start editing the file
   header.status = '0';
+  //Place cursor at the beginning of bin_file
   fseek(bin_file, 0, SEEK_SET);
   write_vehicle_header(bin_file, header);
 
   index_header->status = '0';
+  //Place cursor at the beginning of index_file
   fseek(index_file, 0, SEEK_SET);
   write_index_header(index_file, index_header);
 
   vehicle_t current_vehicle;
-  fseek(bin_file, header.next_reg_byte, SEEK_SET); //offsets the file to where the new vehicle should be registered
+  //offsets the file to where the new vehicle should be registered
+  fseek(bin_file, header.next_reg_byte, SEEK_SET);
 
   size_t current_offset = 0;
   for (int i = 0; i < n; i++) {
@@ -253,6 +275,7 @@ void insert_on_vehicles(char filename[], char filename_index[], int n) {
   fseek(index_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_index_header(index_file, index_header); //updates the header
 
+  //Closing files
   fclose(bin_file);
   fclose(index_file);
   binarioNaTela(filename_index);
@@ -269,6 +292,7 @@ void insert_on_lines(char filename[], char filename_index[], int n) {
   header = read_line_header(bin_file);
   btree_index_header_t *index_header = read_index_header(index_file);
 
+  //Checking for inconsistencies
   if (header.status == 0 || index_header->status == 0) {
     printf(ERROR_MESSAGE);
     fclose(bin_file);
@@ -277,15 +301,18 @@ void insert_on_lines(char filename[], char filename_index[], int n) {
   }
   // mark as inconsistent as we are going to start editing the file
   header.status = '0';
+  //Place cursor at the beginning of bin_file
   fseek(bin_file, 0, SEEK_SET);
   write_line_header(bin_file, header);
 
   index_header->status = '0';
+  //Place cursor at the beginning of index_file
   fseek(index_file, 0, SEEK_SET);
   write_index_header(index_file, index_header);
 
   line_t current_line;
-  fseek(bin_file, header.next_reg_byte, SEEK_SET); //offsets the file to where the new vehicle should be registered
+  //offsets the file to where the new vehicle should be registered
+  fseek(bin_file, header.next_reg_byte, SEEK_SET);
 
   size_t current_offset = 0;
   for (int i = 0; i < n; i++) {
@@ -308,6 +335,7 @@ void insert_on_lines(char filename[], char filename_index[], int n) {
   fseek(index_file, 0, SEEK_SET); //offsets to the beginning of the file
   write_index_header(index_file, index_header); //updates the header
 
+  //Closing files
   fclose(bin_file);
   fclose(index_file);
   binarioNaTela(filename_index);
@@ -499,67 +527,82 @@ void parse_input() {
   char string_arg_1[30], string_arg_2[30], string_arg_3[30];
   scanf("%d", &option);
   switch (option) {
+    //Create table command for vehicles
     case 1:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_table_vehicle(string_arg_1, string_arg_2);
       binarioNaTela(string_arg_2);
       break;
+    //Create table command for lines
     case 2:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_table_line(string_arg_1, string_arg_2);
       binarioNaTela(string_arg_2);
       break;
+    //Select from vehicles
     case 3:
       scanf("%s", string_arg_1);
       select_from_vehicles(string_arg_1);
       break;
+    //Select from lines
     case 4:
       scanf("%s", string_arg_1);
       select_from_lines(string_arg_1);
       break;
+    //Select from vehicles where ...
     case 5:
       scanf("%s %s", string_arg_1, string_arg_2);
       scan_quote_string(string_arg_3);
       find_from_vehicles(string_arg_1, string_arg_2, string_arg_3);
       break;
+    //Select from lines where ...
     case 6:
       scanf("%s %s", string_arg_1, string_arg_2);
       scan_quote_string(string_arg_3);
       find_from_lines(string_arg_1, string_arg_2, string_arg_3);
       break;
+    //Insert into vehicles
     case 7:
       scanf("%s %d", string_arg_1, &new_entries_count);
       insert_on_vehicles(string_arg_1, NULL, new_entries_count);
       break;
+    //Insert into lines
     case 8:
       scanf("%s %d", string_arg_1, &new_entries_count);
       insert_on_lines(string_arg_1, NULL, new_entries_count);
       break;
+    //Create a b-tree vehicle index
     case 9:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_index_vehicles(string_arg_1, string_arg_2);
       break;
+    //Create a b-tree line index
     case 10:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_index_line(string_arg_1, string_arg_2);
       break;
+    //Search on the b-tree vehicle index with key
     case 11:
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
       scan_quote_string(string_arg_3);
       select_from_vehicles_index(string_arg_1, string_arg_2, string_arg_3);
       break;
+    //Search on the b-tree line index with key
     case 12:
       scanf("%s %s %s %d", string_arg_1, string_arg_2, string_arg_3, &int_arg_1);
       select_from_lines_index(string_arg_1, string_arg_2, int_arg_1);
       break;
+    //Insert into vehicles and on the b-tree vehicle index
     case 13:
         scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
         insert_on_vehicles(string_arg_1, string_arg_2, int_arg_1);
         break;
+    //Insert into linees and on the b-tree line index
     case 14:
         scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
         insert_on_lines(string_arg_1, string_arg_2, int_arg_1);
         break;
+    //Any other unexpected command
     default:
       printf(ERROR_MESSAGE);
       break;

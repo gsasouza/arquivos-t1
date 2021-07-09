@@ -8,6 +8,7 @@
 
 
 int main() {
+  //Calls the handlers library where the operations can be called
   parse_input();
   return 0;
 }
