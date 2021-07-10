@@ -6,7 +6,6 @@
 #include "handlers.h"
 #include "b_tree.h"
 
-
 int main() {
   //Calls the handlers library where the operations can be called
   parse_input();

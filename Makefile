@@ -1,5 +1,5 @@
 all: main.o handlers.o helpers.c vehicle.o line.o b_tree.o
-	gcc  main.o handlers.o helpers.c vehicle.o line.o b_tree.o -o programa -lm
+	gcc  main.o handlers.o helpers.c vehicle.o line.o b_tree.o -o programaTrab -lm
 main.o: main.c
 	gcc main.c -c
 handlers.o: handlers.c
@@ -13,6 +13,6 @@ line.o: line.c
 b_tree.o: b_tree.c
 	gcc b_tree.c -c
 clean:
-	rm -rf programa *.o
+	rm -rf programaTrab *.o
 run:
-	./programa
+	./programaTrab

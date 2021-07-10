@@ -365,7 +365,7 @@ void create_index_vehicles(char filename[], char filename_index[]) {
     return;
   }
 
-  // read all vehicles and add to btree index (+52 is here to fix probably an error in bin file)
+  // read all vehicles and add to btree index
   for (int i = 0; i < header.count + header.count_removed; i++) {
     size_t current_offset = ftell(bin_file);
     vehicle_t vehicle = read_vehicle(bin_file, 0);
@@ -597,7 +597,7 @@ void parse_input() {
         scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
         insert_on_vehicles(string_arg_1, string_arg_2, int_arg_1);
         break;
-    //Insert into linees and on the b-tree line index
+    //Insert into lines and on the b-tree line index
     case 14:
         scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
         insert_on_lines(string_arg_1, string_arg_2, int_arg_1);
