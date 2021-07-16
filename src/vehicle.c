@@ -63,7 +63,7 @@ void print_vehicle(vehicle_t vehicle) {
   printf("Modelo do veiculo: %s\n", format_print_null(vehicle.model));
   printf("Categoria do veiculo: %s\n", format_print_null(vehicle.category));
   printf("Data de entrada do veiculo na frota: %s\n", format_print_date(vehicle.date));
-  printf("Quantidade de lugares sentados disponiveis: %s\n\n", format_print_null_int(vehicle.seats));
+  printf("Quantidade de lugares sentados disponiveis: %s\n", format_print_null_int(vehicle.seats));
 }
 
 /*
@@ -110,6 +110,22 @@ vehicle_t read_vehicle(FILE *file, long offset) {
   fread(&new_vehicle->category, 1, new_vehicle->size_category, file);
   add_end_to_vehicle_fields(new_vehicle);
   return *new_vehicle;
+}
+vehicle_t *read_vehicle_p(FILE *file, long offset) {
+  if (offset != 0) fseek(file, offset, SEEK_SET);
+  vehicle_t *new_vehicle = malloc(sizeof(vehicle_t));
+  fread(&new_vehicle->removed, 1, 1, file);
+  fread(&new_vehicle->size, 4, 1, file);
+  fread(&new_vehicle->prefix, 5, 1, file);
+  fread(&new_vehicle->date, 10, 1, file);
+  fread(&new_vehicle->seats, 4, 1, file);
+  fread(&new_vehicle->line_code, 4, 1, file);
+  fread(&new_vehicle->size_model, 4, 1, file);
+  fread(&new_vehicle->model, 1, new_vehicle->size_model, file);
+  fread(&new_vehicle->size_category, 4, 1, file);
+  fread(&new_vehicle->category, 1, new_vehicle->size_category, file);
+  add_end_to_vehicle_fields(new_vehicle);
+  return new_vehicle;
 }
 
 /*
@@ -167,6 +183,15 @@ vehicle_t create_vehicle(){
   new_vehicle->size_model = calculate_maybe_null_size(new_vehicle->model);
   new_vehicle->size = calculate_vehicle_size(new_vehicle);
   return *new_vehicle;
+}
+
+void print_joined_vehicle(vehicle_t vehicle, line_t line) {
+  printf("Prefixo do veiculo: %s\n", format_print_null(vehicle.prefix));
+  printf("Modelo do veiculo: %s\n", format_print_null(vehicle.model));
+  printf("Categoria do veiculo: %s\n", format_print_null(vehicle.category));
+  printf("Data de entrada do veiculo na frota: %s\n", format_print_date(vehicle.date));
+  printf("Quantidade de lugares sentados disponiveis: %s\n\n", format_print_null_int(vehicle.seats));
+
 }
 
 /*

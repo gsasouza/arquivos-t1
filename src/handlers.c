@@ -519,12 +519,138 @@ void select_from_lines_index(char filename[], char filename_index[], int line_co
   fclose(index_file);
 }
 
+
+/*
+ * Join vehicles and lines using nested loop join
+ */
+void nested_loop_join(char filename_vehicles[], char filename_lines[], char field_vehicles[], char field_lines[]) {
+  vehicle_t vehicle;
+  line_t line;
+  int count = 0;
+  // open files
+  FILE *vehicles_file = open_file(filename_vehicles, "rb");
+  FILE *lines_file = open_file(filename_lines, "rb");
+
+  // read indexes
+  vehicle_header_t vehicle_header = read_vehicle_header(vehicles_file);
+  line_header_t line_header = read_line_header(lines_file);
+
+  //if either vehicle or line is not consistent
+  if (vehicle_header.status == '0' || line_header.status == '0') {
+    printf(ERROR_MESSAGE);
+    fclose(vehicles_file);
+    fclose(lines_file);
+    return;
+  }
+
+  // inf file is empty
+  if (vehicle_header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(vehicles_file);
+    fclose(lines_file);
+    return;
+  }
+
+  // nested loop join
+  for (int i = 0; i < vehicle_header.count + vehicle_header.count_removed; i++) {
+    vehicle = read_vehicle(vehicles_file, 0);
+    if (vehicle.removed == '0') continue;
+    // go back to lines start
+    fseek(lines_file, 82, SEEK_SET);
+    // loop through lines
+    for (int j = 0; j < line_header.count + line_header.count_removed; j++) {
+      line = read_line(lines_file, 0);
+      if (line.removed == '0') continue;
+      if (vehicle.line_code == line.line_code) {
+        print_vehicle(vehicle);
+        print_line(line);
+        count++;
+        continue;
+      }
+    }
+  }
+
+  // no joins found
+  if (count == 0) {
+    printf(EMPTY_MESSAGE);
+  }
+
+  // close files
+  fclose(vehicles_file);
+  fclose(lines_file);
+
+}
+
+/*
+ * Join vehicles and lines using nested loop join
+ */
+void single_loop_join(char filename_vehicles[], char filename_lines[], char field_vehicles[], char field_lines[],
+                      char filename_line_index[]) {
+  vehicle_t vehicle;
+  line_t line;
+  int count = 0;
+  // open files
+  FILE *vehicles_file = open_file(filename_vehicles, "rb");
+  FILE *lines_file = open_file(filename_lines, "rb");
+  FILE *lines_index_file = open_file(filename_line_index, "rb");
+
+  // read indexes
+  vehicle_header_t vehicle_header = read_vehicle_header(vehicles_file);
+  line_header_t line_header = read_line_header(lines_file);
+  btree_index_header_t *lines_index_header = read_index_header(lines_index_file);
+
+  //if either vehicle, line or line header is not consistent
+  if (vehicle_header.status == '0' || line_header.status == '0' || lines_index_header->status == false) {
+    printf(ERROR_MESSAGE);
+    fclose(vehicles_file);
+    fclose(lines_file);
+    fclose(lines_index_file);
+    return;
+  }
+
+  // inf file is empty
+  if (vehicle_header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(vehicles_file);
+    fclose(lines_file);
+    fclose(lines_index_file);
+    return;
+  }
+
+  // read btree root
+  node_t *root_node = read_index_node(lines_index_file, lines_index_header->root_node_rrn, NULL);
+  record_t *record;
+
+  // single loop join
+  for (int i = 0; i < vehicle_header.count + vehicle_header.count_removed; i++) {
+    vehicle = read_vehicle(vehicles_file, 0);
+    if (vehicle.removed == '0') continue;
+    record = btree_find_node(lines_index_file, lines_index_header, root_node, vehicle.line_code);
+    if (!record) continue;
+    line = read_line(lines_file, record->value);
+    if (line.removed == '0') continue;
+    print_vehicle(vehicle);
+    print_line(line);
+    count++;
+  }
+
+  if (count == 0) {
+    printf(EMPTY_MESSAGE);
+  }
+
+  // close files
+  fclose(vehicles_file);
+  fclose(lines_file);
+
+}
+
+
 /*
  * parses input and decide what to do
  */
 void parse_input() {
   int option, new_entries_count, int_arg_1;
-  char string_arg_1[30], string_arg_2[30], string_arg_3[30];
+  char string_arg_1[30], string_arg_2[30], string_arg_3[30], string_arg_4[30], string_arg_5[30];
   scanf("%d", &option);
   switch (option) {
     //Create table command for vehicles
@@ -533,76 +659,87 @@ void parse_input() {
       create_table_vehicle(string_arg_1, string_arg_2);
       binarioNaTela(string_arg_2);
       break;
-    //Create table command for lines
+      //Create table command for lines
     case 2:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_table_line(string_arg_1, string_arg_2);
       binarioNaTela(string_arg_2);
       break;
-    //Select from vehicles
+      //Select from vehicles
     case 3:
       scanf("%s", string_arg_1);
       select_from_vehicles(string_arg_1);
       break;
-    //Select from lines
+      //Select from lines
     case 4:
       scanf("%s", string_arg_1);
       select_from_lines(string_arg_1);
       break;
-    //Select from vehicles where ...
+      //Select from vehicles where ...
     case 5:
       scanf("%s %s", string_arg_1, string_arg_2);
       scan_quote_string(string_arg_3);
       find_from_vehicles(string_arg_1, string_arg_2, string_arg_3);
       break;
-    //Select from lines where ...
+      //Select from lines where ...
     case 6:
       scanf("%s %s", string_arg_1, string_arg_2);
       scan_quote_string(string_arg_3);
       find_from_lines(string_arg_1, string_arg_2, string_arg_3);
       break;
-    //Insert into vehicles
+      //Insert into vehicles
     case 7:
       scanf("%s %d", string_arg_1, &new_entries_count);
       insert_on_vehicles(string_arg_1, NULL, new_entries_count);
       break;
-    //Insert into lines
+      //Insert into lines
     case 8:
       scanf("%s %d", string_arg_1, &new_entries_count);
       insert_on_lines(string_arg_1, NULL, new_entries_count);
       break;
-    //Create a b-tree vehicle index
+      //Create a b-tree vehicle index
     case 9:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_index_vehicles(string_arg_1, string_arg_2);
       break;
-    //Create a b-tree line index
+      //Create a b-tree line index
     case 10:
       scanf("%s %s", string_arg_1, string_arg_2);
       create_index_line(string_arg_1, string_arg_2);
       break;
-    //Search on the b-tree vehicle index with key
+      //Search on the b-tree vehicle index with key
     case 11:
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
       scan_quote_string(string_arg_3);
       select_from_vehicles_index(string_arg_1, string_arg_2, string_arg_3);
       break;
-    //Search on the b-tree line index with key
+      //Search on the b-tree line index with key
     case 12:
       scanf("%s %s %s %d", string_arg_1, string_arg_2, string_arg_3, &int_arg_1);
       select_from_lines_index(string_arg_1, string_arg_2, int_arg_1);
       break;
-    //Insert into vehicles and on the b-tree vehicle index
+      //Insert into vehicles and on the b-tree vehicle index
     case 13:
-        scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
-        insert_on_vehicles(string_arg_1, string_arg_2, int_arg_1);
-        break;
+      scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
+      insert_on_vehicles(string_arg_1, string_arg_2, int_arg_1);
+      break;
     //Insert into lines and on the b-tree line index
     case 14:
-        scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
-        insert_on_lines(string_arg_1, string_arg_2, int_arg_1);
-        break;
-    //Any other unexpected command
+      scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
+      insert_on_lines(string_arg_1, string_arg_2, int_arg_1);
+      break;
+
+    //Do join using nested loop
+    case 15:
+      scanf("%s %s %s %s", string_arg_1, string_arg_2, string_arg_3, string_arg_4);
+      nested_loop_join(string_arg_1, string_arg_2, string_arg_3, string_arg_4);
+      break;
+    //Do join using single loop
+    case 16:
+      scanf("%s %s %s %s %s", string_arg_1, string_arg_2, string_arg_3, string_arg_4, string_arg_5);
+      single_loop_join(string_arg_1, string_arg_2, string_arg_3, string_arg_4, string_arg_5);
+      break;
+      //Any other unexpected command
     default:
       printf(ERROR_MESSAGE);
       break;

@@ -128,6 +128,21 @@ line_t read_line(FILE *file, long offset) {
   return *new_line;
 }
 
+line_t *read_line_p(FILE *file, long offset) {
+  if (offset != 0) fseek(file, offset, SEEK_SET);
+  line_t *new_line = malloc(sizeof(line_t));
+  fread(&new_line->removed, 1, 1, file);
+  fread(&new_line->size, 4, 1, file);
+  fread(&new_line->line_code, 4, 1, file);
+  fread(&new_line->accept_card, 1, 1, file);
+  fread(&new_line->size_name, 4, 1, file);
+  fread(&new_line->name, 1, new_line->size_name, file);
+  fread(&new_line->size_color, 4, 1, file);
+  fread(&new_line->color, 1, new_line->size_color, file);
+  add_end_to_fields(new_line);
+  return new_line;
+}
+
 /*
  * Write line in bin file
  */

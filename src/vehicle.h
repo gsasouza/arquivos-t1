@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "helpers.h"
-
+#include "line.h"
 
 typedef struct vehicle {
   char prefix[6];
@@ -52,6 +52,7 @@ void write_vehicle_header(FILE *file, vehicle_header_t vehicle_header);
 vehicle_header_t read_vehicle_header(FILE *file);
 
 vehicle_t read_vehicle(FILE *file, long offset);
+vehicle_t *read_vehicle_p(FILE *file, long offset);
 
 vehicle_header_t read_vehicle_header_from_csv(char line[]);
 
