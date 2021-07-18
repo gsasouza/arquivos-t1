@@ -28,7 +28,17 @@ void print_line(line_t line) {
   printf("Codigo da linha: %s\n", format_print_null_int(line.line_code));
   printf("Nome da linha: %s\n", format_print_null(line.name));
   printf("Cor que descreve a linha: %s\n", format_print_null(line.color));
-  printf("Aceita cartao: %s\n\n", format_accept_card(line.accept_card[0]));
+  switch(line.accept_card[0]){
+      case 'S':
+          printf("Aceita cartao: PAGAMENTO SOMENTE COM CARTAO SEM PRESENCA DE COBRADOR");
+          break;
+      case 'N':
+          printf("Aceita cartao: PAGAMENTO EM CARTAO E DINHEIRO");
+          break;
+      case 'F':
+          printf("Aceita cartao: PAGAMENTO EM CARTAO SOMENTE NO FINAL DE SEMANA");
+          break;
+  }
 }
 
 /*

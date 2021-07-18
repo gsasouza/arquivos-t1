@@ -15,6 +15,7 @@
 #include "vehicle.h"
 #include "line.h"
 #include "b_tree.h"
+#include "sorting.h"
 
 void parse_input();
 
