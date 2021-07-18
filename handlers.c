@@ -859,6 +859,21 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
     vehicle_header_t vehicle_header = read_vehicle_header(vehicle_file);
     line_header_t line_header = read_line_header(line_file);
 
+    // if line or vehicle header is not consistent
+    if (vehicle_header.status == '0' || line_header.status == '0') {
+        printf(ERROR_MESSAGE);
+        fclose(vehicle_file);
+        fclose(line_file);
+        return;
+    }
+
+    // if one of the files is empty
+    if (vehicle_header.count == 0 || line_header.count == 0) {
+        printf(EMPTY_MESSAGE);
+        fclose(vehicle_file);
+        fclose(line_file);
+        return;
+    }
     // n will be the one with least registers between lines and vehicles
     int vehicle_total = vehicle_header.count + vehicle_header.count_removed;
     int line_total = line_header.count + line_header.count_removed;
