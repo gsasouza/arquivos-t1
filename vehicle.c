@@ -89,6 +89,7 @@ void add_end_to_vehicle_fields(vehicle_t *vehicle) {
   vehicle->model[vehicle->size_model] = '\0';
   vehicle->category[vehicle->size_category] = '\0';
   vehicle->date[10] = '\0';
+  vehicle->prefix[5] = '\0';
   if (vehicle->date[0] == '@') vehicle->date[0] = '\0';
 }
 

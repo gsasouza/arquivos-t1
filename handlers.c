@@ -649,7 +649,7 @@ void single_loop_join(char filename_vehicles[], char filename_lines[], char fiel
 /*
  * sort vehicles based on sorting field
  */
-void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filename[], char sorting_field[]) {
+void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filename[], char sorting_field[], int op) {
 
     // open unsorted file
     FILE *unsorted_vehicle_file = fopen(unsorted_vehicle_filename, "rb");
@@ -659,14 +659,17 @@ void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filenam
 
     // if vehicle header is not consistent
     if (unsorted_vehicle_header.status == '0') {
-        printf(ERROR_MESSAGE);
+        //if its the 17th op
+        if(op == 17)
+            printf(ERROR_MESSAGE);
         fclose(unsorted_vehicle_file);
         return;
     }
 
     // if file is empty
     if (unsorted_vehicle_header.count == 0) {
-        printf(EMPTY_MESSAGE);
+        if(op == 17)
+            printf(EMPTY_MESSAGE);
         fclose(unsorted_vehicle_file);
         return;
     }
@@ -729,12 +732,13 @@ void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filenam
     fseek(sorted_vehicle_file, 0, SEEK_SET);
     write_vehicle_header(sorted_vehicle_file, sorted_vehicle_header);
 
-    if (n_vehicles == 0) {
-        printf(EMPTY_MESSAGE);
+    if(op == 17){
+        if (n_vehicles == 0)
+            printf(EMPTY_MESSAGE);
+        else
+            binarioNaTela(sorted_vehicle_filename);
     }
-    //If its not the operation 19
-    else if(strcmp(unsorted_vehicle_filename, sorted_vehicle_filename) != 0)
-        binarioNaTela(sorted_vehicle_filename);
+
 
 
     // close files
@@ -748,7 +752,7 @@ void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filenam
 /*
  * sort lines based on sorting field
  */
-void sort_lines(char unsorted_line_filename[], char sorted_line_filename[], char sorting_field[]) {
+void sort_lines(char unsorted_line_filename[], char sorted_line_filename[], char sorting_field[], int op) {
 
     // open unsorted file
     FILE *unsorted_line_file = fopen(unsorted_line_filename, "rb");
@@ -758,14 +762,17 @@ void sort_lines(char unsorted_line_filename[], char sorted_line_filename[], char
 
     // if line  header is not consistent
     if (unsorted_line_header.status == '0') {
-        printf(ERROR_MESSAGE);
+        //if its the 18th op
+        if(op == 18)
+            printf(ERROR_MESSAGE);
         fclose(unsorted_line_file);
         return;
     }
 
     // if file is empty
     if (unsorted_line_header.count == 0) {
-        printf(EMPTY_MESSAGE);
+        if(op == 18)
+            printf(EMPTY_MESSAGE);
         fclose(unsorted_line_file);
         return;
     }
@@ -828,12 +835,13 @@ void sort_lines(char unsorted_line_filename[], char sorted_line_filename[], char
     fseek(sorted_line_file, 0, SEEK_SET);
     write_line_header(sorted_line_file, sorted_line_header);
 
-    if (n_lines == 0) {
-        printf(EMPTY_MESSAGE);
+    if(op == 18){
+        if (n_lines == 0)
+            printf(EMPTY_MESSAGE);
+        else
+            binarioNaTela(sorted_line_filename);
     }
-    //If its not the operation 19
-    else if(strcmp(unsorted_line_filename, sorted_line_filename) != 0)
-        binarioNaTela(sorted_line_filename);
+
 
 
     // close files
@@ -848,8 +856,8 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
                                    char vehicle_sorting_field[], char line_sorting_field[]){
 
     // Use previous functions to sort
-    sort_vehicles(vehicle_filename, vehicle_filename, vehicle_sorting_field);
-    sort_lines(line_filename, line_filename, line_sorting_field);
+    sort_vehicles(vehicle_filename, vehicle_filename, vehicle_sorting_field, 19);
+    sort_lines(line_filename, line_filename, line_sorting_field, 19);
 
     //Opening files
     FILE *vehicle_file = fopen(vehicle_filename, "rb");
@@ -879,21 +887,12 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
     int line_total = line_header.count + line_header.count_removed;
 
     //creating the vehicle and lines variables to read from file
-    vehicle_t current_vehicle = read_vehicle(vehicle_file, 0);;
-    line_t current_line = read_line(line_file, 0);;
-
+    vehicle_t current_vehicle = read_vehicle(vehicle_file, 0);
+    line_t current_line = read_line(line_file, 0);
     int register_total = 0;
     // reading both files and checking if the vehicle and line match
     for(int v = 0, l = 0; v < vehicle_total && l < line_total;){
-        if(current_vehicle.line_code < current_line.line_code){
-            current_vehicle = read_vehicle(vehicle_file, 0);
-            v++;
-        }
-        else if(current_vehicle.line_code > current_line.line_code){
-            current_line = read_line(line_file, 0);
-            l++;
-        }
-        else{
+        if(current_vehicle.line_code == current_line.line_code){
             print_vehicle(current_vehicle);
             print_line(current_line);
             printf("\n\n");
@@ -902,12 +901,19 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
             l++;
             if(v < vehicle_total)
                 current_vehicle = read_vehicle(vehicle_file, 0);
-            if(l < line_total)
-                current_line = read_line(line_file, 0);
         }
+        else if(current_vehicle.line_code < current_line.line_code){
+            current_vehicle = read_vehicle(vehicle_file, 0);
+            v++;
+        }
+        else{
+            current_line = read_line(line_file, 0);
+            l++;
+        }
+
     }
     if(register_total == 0)
-        printf(NULL_MESSAGE);
+        printf(EMPTY_MESSAGE);
 
 }
 
@@ -1008,17 +1014,18 @@ void parse_input() {
     // Sorts vehicles based on field
     case 17:
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
-      sort_vehicles(string_arg_1, string_arg_2, string_arg_3);
+      sort_vehicles(string_arg_1, string_arg_2, string_arg_3, 17);
       break;
     // Sorts lines based on field
     case 18:
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
-      sort_lines(string_arg_1, string_arg_2, string_arg_3);
+      sort_lines(string_arg_1, string_arg_2, string_arg_3, 18);
       break;
     // Prints all registers if they are compatible on both files
     case 19:
       scanf("%s %s %s %s", string_arg_1, string_arg_2, string_arg_3, string_arg_4);
       show_all_compatible_registers(string_arg_1, string_arg_2, string_arg_3, string_arg_4);
+      break;
     //Any other unexpected command
     default:
       printf(ERROR_MESSAGE);
