@@ -564,6 +564,7 @@ void nested_loop_join(char filename_vehicles[], char filename_lines[], char fiel
       if (vehicle.line_code == line.line_code) {
         print_vehicle(vehicle);
         print_line(line);
+        printf("\n\n");
         count++;
         continue;
       }
@@ -631,6 +632,7 @@ void single_loop_join(char filename_vehicles[], char filename_lines[], char fiel
     if (line.removed == '0') continue;
     print_vehicle(vehicle);
     print_line(line);
+    printf("\n\n");
     count++;
   }
 
@@ -886,9 +888,11 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
     int vehicle_total = vehicle_header.count + vehicle_header.count_removed;
     int line_total = line_header.count + line_header.count_removed;
 
-    //creating the vehicle and lines variables to read from file
+    // creating the vehicle and lines variables to read from file
     vehicle_t current_vehicle = read_vehicle(vehicle_file, 0);
     line_t current_line = read_line(line_file, 0);
+
+    // counting how many registers were printed
     int register_total = 0;
     // reading both files and checking if the vehicle and line match
     for(int v = 0, l = 0; v < vehicle_total && l < line_total;){
@@ -898,20 +902,25 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
             printf("\n\n");
             register_total++;
             v++;
-            l++;
+            //line is not updated because 1 vehicle only goest o 1 line, but 1 line can go to several vehicles
             if(v < vehicle_total)
                 current_vehicle = read_vehicle(vehicle_file, 0);
         }
+        //iterate through vehicles until find ones with same line_code
         else if(current_vehicle.line_code < current_line.line_code){
             current_vehicle = read_vehicle(vehicle_file, 0);
             v++;
         }
+        //if the vehicles now have bigger line_codes
+        //vehicle is not updated because the previous vehicle could match with the next line
         else{
             current_line = read_line(line_file, 0);
             l++;
         }
 
+
     }
+    //if nothing was printed
     if(register_total == 0)
         printf(EMPTY_MESSAGE);
 
