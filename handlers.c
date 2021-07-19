@@ -647,108 +647,106 @@ void single_loop_join(char filename_vehicles[], char filename_lines[], char fiel
 }
 
 
-
 /*
  * sort vehicles based on sorting field
  */
 void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filename[], char sorting_field[], int op) {
 
-    // open unsorted file
-    FILE *unsorted_vehicle_file = fopen(unsorted_vehicle_filename, "rb");
+  // open unsorted file
+  FILE *unsorted_vehicle_file = fopen(unsorted_vehicle_filename, "rb");
 
-    // read index
-    vehicle_header_t unsorted_vehicle_header = read_vehicle_header(unsorted_vehicle_file);
+  // read index
+  vehicle_header_t unsorted_vehicle_header = read_vehicle_header(unsorted_vehicle_file);
 
-    // if vehicle header is not consistent
-    if (unsorted_vehicle_header.status == '0') {
-        //if its the 17th op
-        if(op == 17)
-            printf(ERROR_MESSAGE);
-        fclose(unsorted_vehicle_file);
-        return;
-    }
-
-    // if file is empty
-    if (unsorted_vehicle_header.count == 0) {
-        if(op == 17)
-            printf(EMPTY_MESSAGE);
-        fclose(unsorted_vehicle_file);
-        return;
-    }
-
-    // create space for all vehicles
-    vehicle_t* vehicles = malloc((unsorted_vehicle_header.count)*sizeof(vehicle_t));
-
-    // auxiliary vehicle to check if it is removed;
-    vehicle_t current_vehicle;
-
-    // counts how many vehicles are not logically removed
-    int n_vehicles = 0;
-
-    int total_vehicles = unsorted_vehicle_header.count + unsorted_vehicle_header.count_removed;
-
-    // pulling all vehicles into RAM
-    for(int i = 0; i < total_vehicles; i++){
-
-        // passing one vehicle to RAM, offset is not needed since its reading sequentially
-        current_vehicle = read_vehicle(unsorted_vehicle_file, 0);
-
-        // if its not logically removed
-        if(current_vehicle.removed == '1'){
-            vehicles[n_vehicles] = current_vehicle;
-            n_vehicles++;
-        }
-    }
-    // sorting
-    mergesort_vehicle(vehicles, 0, n_vehicles-1, sorting_field);
-
-    //open file to sort
-    FILE *sorted_vehicle_file = fopen(sorted_vehicle_filename, "wb");
-
-    // create index, copies most of the useful info, other infos will be updated later
-    vehicle_header_t sorted_vehicle_header = unsorted_vehicle_header;
-    sorted_vehicle_header.status = '0';
-
-    // updating header infos
-    sorted_vehicle_header.count = n_vehicles;
-    sorted_vehicle_header.count_removed = 0;
-
-
-
-    // writing header on sorted file
-    write_vehicle_header(sorted_vehicle_file, sorted_vehicle_header);
-
-    // pushing all vehicles to sorted file
-    for(int i = 0; i < n_vehicles; i++){
-        // the write vehicle func inverts the removed notation, so '0' means not removed
-        vehicles[i].removed = '0';
-        write_vehicle(sorted_vehicle_file, vehicles[i]);
-    }
-
-    //writing the byteoffset
-    sorted_vehicle_header.next_reg_byte = ftell(sorted_vehicle_file);
-
-    //updating header status to stable
-    sorted_vehicle_header.status = '1';
-
-    fseek(sorted_vehicle_file, 0, SEEK_SET);
-    write_vehicle_header(sorted_vehicle_file, sorted_vehicle_header);
-
-    if(op == 17){
-        if (n_vehicles == 0)
-            printf(EMPTY_MESSAGE);
-        else
-            binarioNaTela(sorted_vehicle_filename);
-    }
-
-
-
-    // close files
+  // if vehicle header is not consistent
+  if (unsorted_vehicle_header.status == '0') {
+    //if its the 17th op
+    if (op == 17)
+      printf(ERROR_MESSAGE);
     fclose(unsorted_vehicle_file);
-    fclose(sorted_vehicle_file);
+    return;
+  }
 
-    // frees all pointers
-    free(vehicles);
+  // if file is empty
+  if (unsorted_vehicle_header.count == 0) {
+    if (op == 17)
+      printf(EMPTY_MESSAGE);
+    fclose(unsorted_vehicle_file);
+    return;
+  }
+
+  // create space for all vehicles
+  vehicle_t *vehicles = malloc((unsorted_vehicle_header.count) * sizeof(vehicle_t));
+
+  // auxiliary vehicle to check if it is removed;
+  vehicle_t current_vehicle;
+
+  // counts how many vehicles are not logically removed
+  int n_vehicles = 0;
+
+  int total_vehicles = unsorted_vehicle_header.count + unsorted_vehicle_header.count_removed;
+
+  // pulling all vehicles into RAM
+  for (int i = 0; i < total_vehicles; i++) {
+
+    // passing one vehicle to RAM, offset is not needed since its reading sequentially
+    current_vehicle = read_vehicle(unsorted_vehicle_file, 0);
+
+    // if its not logically removed
+    if (current_vehicle.removed == '1') {
+      vehicles[n_vehicles] = current_vehicle;
+      n_vehicles++;
+    }
+  }
+  // sorting
+  mergesort_vehicle(vehicles, 0, n_vehicles - 1, sorting_field);
+
+  //open file to sort
+  FILE *sorted_vehicle_file = fopen(sorted_vehicle_filename, "wb");
+
+  // create index, copies most of the useful info, other infos will be updated later
+  vehicle_header_t sorted_vehicle_header = unsorted_vehicle_header;
+  sorted_vehicle_header.status = '0';
+
+  // updating header infos
+  sorted_vehicle_header.count = n_vehicles;
+  sorted_vehicle_header.count_removed = 0;
+
+
+
+  // writing header on sorted file
+  write_vehicle_header(sorted_vehicle_file, sorted_vehicle_header);
+
+  // pushing all vehicles to sorted file
+  for (int i = 0; i < n_vehicles; i++) {
+    // the write vehicle func inverts the removed notation, so '0' means not removed
+    vehicles[i].removed = '0';
+    write_vehicle(sorted_vehicle_file, vehicles[i]);
+  }
+
+  //writing the byteoffset
+  sorted_vehicle_header.next_reg_byte = ftell(sorted_vehicle_file);
+
+  //updating header status to stable
+  sorted_vehicle_header.status = '1';
+
+  fseek(sorted_vehicle_file, 0, SEEK_SET);
+  write_vehicle_header(sorted_vehicle_file, sorted_vehicle_header);
+
+
+  // close files
+  fclose(unsorted_vehicle_file);
+  fclose(sorted_vehicle_file);
+
+  if (op == 17) {
+    if (n_vehicles == 0)
+      printf(EMPTY_MESSAGE);
+    else
+      binarioNaTela(sorted_vehicle_filename);
+  }
+
+  // frees all pointers
+  free(vehicles);
 }
 
 /*
@@ -756,173 +754,175 @@ void sort_vehicles(char unsorted_vehicle_filename[], char sorted_vehicle_filenam
  */
 void sort_lines(char unsorted_line_filename[], char sorted_line_filename[], char sorting_field[], int op) {
 
-    // open unsorted file
-    FILE *unsorted_line_file = fopen(unsorted_line_filename, "rb");
+  // open unsorted file
+  FILE *unsorted_line_file = fopen(unsorted_line_filename, "rb");
 
-    // read index
-    line_header_t unsorted_line_header = read_line_header(unsorted_line_file);
+  // read index
+  line_header_t unsorted_line_header = read_line_header(unsorted_line_file);
 
-    // if line  header is not consistent
-    if (unsorted_line_header.status == '0') {
-        //if its the 18th op
-        if(op == 18)
-            printf(ERROR_MESSAGE);
-        fclose(unsorted_line_file);
-        return;
-    }
-
-    // if file is empty
-    if (unsorted_line_header.count == 0) {
-        if(op == 18)
-            printf(EMPTY_MESSAGE);
-        fclose(unsorted_line_file);
-        return;
-    }
-
-    // create space for all lines
-    line_t* lines = malloc((unsorted_line_header.count)*sizeof(line_t));
-
-    // auxiliary line to check if it is removed;
-    line_t current_line;
-
-    // counts how many lines are not logically removed
-    int n_lines = 0;
-
-    int total_lines = unsorted_line_header.count + unsorted_line_header.count_removed;
-
-    // pulling all lines into RAM
-    for(int i = 0; i < total_lines; i++){
-
-        // passing one line to RAM, offset is not needed since its reading sequentially
-        current_line = read_line(unsorted_line_file, 0);
-
-        // if its not logically removed
-        if(current_line.removed == '1'){
-            lines[n_lines] = current_line;
-            n_lines++;
-        }
-    }
-    // sorting
-    mergesort_line(lines, 0, n_lines-1, sorting_field);
-
-    //open file to sort
-    FILE *sorted_line_file = fopen(sorted_line_filename, "wb");
-
-    // create index, copies most of the useful info, other infos will be updated later
-    line_header_t sorted_line_header = unsorted_line_header;
-    sorted_line_header.status = '0';
-
-    // updating header infos
-    sorted_line_header.count = n_lines;
-    sorted_line_header.count_removed = 0;
-
-
-
-    // writing header on sorted file
-    write_line_header(sorted_line_file, sorted_line_header);
-
-    // pushing all lines to sorted file
-    for(int i = 0; i < n_lines; i++){
-        // the write line func inverts the removed notation, so '0' means not removed
-        lines[i].removed = '0';
-        write_line(sorted_line_file, lines[i]);
-    }
-
-    //writing the byteoffset
-    sorted_line_header.next_reg_byte = ftell(sorted_line_file);
-
-    //updating header status to stable
-    sorted_line_header.status = '1';
-
-    fseek(sorted_line_file, 0, SEEK_SET);
-    write_line_header(sorted_line_file, sorted_line_header);
-
-    if(op == 18){
-        if (n_lines == 0)
-            printf(EMPTY_MESSAGE);
-        else
-            binarioNaTela(sorted_line_filename);
-    }
-
-
-
-    // close files
+  // if line  header is not consistent
+  if (unsorted_line_header.status == '0') {
+    //if its the 18th op
+    if (op == 18)
+      printf(ERROR_MESSAGE);
     fclose(unsorted_line_file);
-    fclose(sorted_line_file);
+    return;
+  }
 
-    // frees all pointers
-    free(lines);
+  // if file is empty
+  if (unsorted_line_header.count == 0) {
+    if (op == 18)
+      printf(EMPTY_MESSAGE);
+    fclose(unsorted_line_file);
+    return;
+  }
+
+  // create space for all lines
+  line_t *lines = malloc((unsorted_line_header.count) * sizeof(line_t));
+
+  // auxiliary line to check if it is removed;
+  line_t current_line;
+
+  // counts how many lines are not logically removed
+  int n_lines = 0;
+
+  int total_lines = unsorted_line_header.count + unsorted_line_header.count_removed;
+
+  // pulling all lines into RAM
+  for (int i = 0; i < total_lines; i++) {
+
+    // passing one line to RAM, offset is not needed since its reading sequentially
+    current_line = read_line(unsorted_line_file, 0);
+
+    // if its not logically removed
+    if (current_line.removed == '1') {
+      lines[n_lines] = current_line;
+      n_lines++;
+    }
+  }
+  // sorting
+  mergesort_line(lines, 0, n_lines - 1, sorting_field);
+
+  //open file to sort
+  FILE *sorted_line_file = fopen(sorted_line_filename, "wb");
+
+  // create index, copies most of the useful info, other infos will be updated later
+  line_header_t sorted_line_header = unsorted_line_header;
+  sorted_line_header.status = '0';
+
+  // updating header infos
+  sorted_line_header.count = n_lines;
+  sorted_line_header.count_removed = 0;
+
+
+
+  // writing header on sorted file
+  write_line_header(sorted_line_file, sorted_line_header);
+
+  // pushing all lines to sorted file
+  for (int i = 0; i < n_lines; i++) {
+    // the write line func inverts the removed notation, so '0' means not removed
+    lines[i].removed = '0';
+    write_line(sorted_line_file, lines[i]);
+  }
+
+  //writing the byteoffset
+  sorted_line_header.next_reg_byte = ftell(sorted_line_file);
+
+  //updating header status to stable
+  sorted_line_header.status = '1';
+
+  fseek(sorted_line_file, 0, SEEK_SET);
+  write_line_header(sorted_line_file, sorted_line_header);
+
+
+  // close files
+  fclose(unsorted_line_file);
+  fclose(sorted_line_file);
+
+
+  if (op == 18) {
+    if (n_lines == 0)
+      printf(EMPTY_MESSAGE);
+    else
+      binarioNaTela(sorted_line_filename);
+  }
+
+
+
+  // frees all pointers
+  free(lines);
 }
 
 void show_all_compatible_registers(char vehicle_filename[], char line_filename[],
-                                   char vehicle_sorting_field[], char line_sorting_field[]){
+                                   char vehicle_sorting_field[], char line_sorting_field[]) {
 
-    // Use previous functions to sort
-    sort_vehicles(vehicle_filename, vehicle_filename, vehicle_sorting_field, 19);
-    sort_lines(line_filename, line_filename, line_sorting_field, 19);
+  // Use previous functions to sort
+  sort_vehicles(vehicle_filename, vehicle_filename, vehicle_sorting_field, 19);
+  sort_lines(line_filename, line_filename, line_sorting_field, 19);
 
-    //Opening files
-    FILE *vehicle_file = fopen(vehicle_filename, "rb");
-    FILE *line_file = fopen(line_filename, "rb");
+  //Opening files
+  FILE *vehicle_file = fopen(vehicle_filename, "rb");
+  FILE *line_file = fopen(line_filename, "rb");
 
-    // read indexes
-    vehicle_header_t vehicle_header = read_vehicle_header(vehicle_file);
-    line_header_t line_header = read_line_header(line_file);
+  // read indexes
+  vehicle_header_t vehicle_header = read_vehicle_header(vehicle_file);
+  line_header_t line_header = read_line_header(line_file);
 
-    // if line or vehicle header is not consistent
-    if (vehicle_header.status == '0' || line_header.status == '0') {
-        printf(ERROR_MESSAGE);
-        fclose(vehicle_file);
-        fclose(line_file);
-        return;
+  // if line or vehicle header is not consistent
+  if (vehicle_header.status == '0' || line_header.status == '0') {
+    printf(ERROR_MESSAGE);
+    fclose(vehicle_file);
+    fclose(line_file);
+    return;
+  }
+
+  // if one of the files is empty
+  if (vehicle_header.count == 0 || line_header.count == 0) {
+    printf(EMPTY_MESSAGE);
+    fclose(vehicle_file);
+    fclose(line_file);
+    return;
+  }
+  // n will be the one with least registers between lines and vehicles
+  int vehicle_total = vehicle_header.count + vehicle_header.count_removed;
+  int line_total = line_header.count + line_header.count_removed;
+
+  // creating the vehicle and lines variables to read from file
+  vehicle_t current_vehicle = read_vehicle(vehicle_file, 0);
+  line_t current_line = read_line(line_file, 0);
+
+  // counting how many registers were printed
+  int register_total = 0;
+  // reading both files and checking if the vehicle and line match
+  for (int v = 0, l = 0; v < vehicle_total && l < line_total;) {
+    if (current_vehicle.line_code == current_line.line_code) {
+      print_vehicle(current_vehicle);
+      print_line(current_line);
+      printf("\n\n");
+      register_total++;
+      v++;
+      //line is not updated because 1 vehicle only goest o 1 line, but 1 line can go to several vehicles
+      if (v < vehicle_total)
+        current_vehicle = read_vehicle(vehicle_file, 0);
+    }
+      //iterate through vehicles until find ones with same line_code
+    else if (current_vehicle.line_code < current_line.line_code) {
+      current_vehicle = read_vehicle(vehicle_file, 0);
+      v++;
+    }
+      //if the vehicles now have bigger line_codes
+      //vehicle is not updated because the previous vehicle could match with the next line
+    else {
+      current_line = read_line(line_file, 0);
+      l++;
     }
 
-    // if one of the files is empty
-    if (vehicle_header.count == 0 || line_header.count == 0) {
-        printf(EMPTY_MESSAGE);
-        fclose(vehicle_file);
-        fclose(line_file);
-        return;
-    }
-    // n will be the one with least registers between lines and vehicles
-    int vehicle_total = vehicle_header.count + vehicle_header.count_removed;
-    int line_total = line_header.count + line_header.count_removed;
 
-    // creating the vehicle and lines variables to read from file
-    vehicle_t current_vehicle = read_vehicle(vehicle_file, 0);
-    line_t current_line = read_line(line_file, 0);
-
-    // counting how many registers were printed
-    int register_total = 0;
-    // reading both files and checking if the vehicle and line match
-    for(int v = 0, l = 0; v < vehicle_total && l < line_total;){
-        if(current_vehicle.line_code == current_line.line_code){
-            print_vehicle(current_vehicle);
-            print_line(current_line);
-            printf("\n\n");
-            register_total++;
-            v++;
-            //line is not updated because 1 vehicle only goest o 1 line, but 1 line can go to several vehicles
-            if(v < vehicle_total)
-                current_vehicle = read_vehicle(vehicle_file, 0);
-        }
-        //iterate through vehicles until find ones with same line_code
-        else if(current_vehicle.line_code < current_line.line_code){
-            current_vehicle = read_vehicle(vehicle_file, 0);
-            v++;
-        }
-        //if the vehicles now have bigger line_codes
-        //vehicle is not updated because the previous vehicle could match with the next line
-        else{
-            current_line = read_line(line_file, 0);
-            l++;
-        }
-
-
-    }
-    //if nothing was printed
-    if(register_total == 0)
-        printf(EMPTY_MESSAGE);
+  }
+  //if nothing was printed
+  if (register_total == 0)
+    printf(EMPTY_MESSAGE);
 
 }
 
@@ -1004,38 +1004,38 @@ void parse_input() {
       scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
       insert_on_vehicles(string_arg_1, string_arg_2, int_arg_1);
       break;
-    //Insert into lines and on the b-tree line index
+      //Insert into lines and on the b-tree line index
     case 14:
       scanf("%s %s %d", string_arg_1, string_arg_2, &int_arg_1);
       insert_on_lines(string_arg_1, string_arg_2, int_arg_1);
       break;
 
-    //Do join using nested loop
+      //Do join using nested loop
     case 15:
       scanf("%s %s %s %s", string_arg_1, string_arg_2, string_arg_3, string_arg_4);
       nested_loop_join(string_arg_1, string_arg_2, string_arg_3, string_arg_4);
       break;
-    //Do join using single loop
+      //Do join using single loop
     case 16:
       scanf("%s %s %s %s %s", string_arg_1, string_arg_2, string_arg_3, string_arg_4, string_arg_5);
       single_loop_join(string_arg_1, string_arg_2, string_arg_3, string_arg_4, string_arg_5);
       break;
-    // Sorts vehicles based on field
+      // Sorts vehicles based on field
     case 17:
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
       sort_vehicles(string_arg_1, string_arg_2, string_arg_3, 17);
       break;
-    // Sorts lines based on field
+      // Sorts lines based on field
     case 18:
       scanf("%s %s %s", string_arg_1, string_arg_2, string_arg_3);
       sort_lines(string_arg_1, string_arg_2, string_arg_3, 18);
       break;
-    // Prints all registers if they are compatible on both files
+      // Prints all registers if they are compatible on both files
     case 19:
       scanf("%s %s %s %s", string_arg_1, string_arg_2, string_arg_3, string_arg_4);
       show_all_compatible_registers(string_arg_1, string_arg_2, string_arg_3, string_arg_4);
       break;
-    //Any other unexpected command
+      //Any other unexpected command
     default:
       printf(ERROR_MESSAGE);
       break;
