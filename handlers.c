@@ -864,6 +864,7 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
   //Opening files
   FILE *vehicle_file = fopen(vehicle_filename, "rb");
   FILE *line_file = fopen(line_filename, "rb");
+  FILE *all_file = fopen("arquivo_ordenado", "wb");
 
   // read indexes
   vehicle_header_t vehicle_header = read_vehicle_header(vehicle_file);
@@ -874,6 +875,7 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
     printf(ERROR_MESSAGE);
     fclose(vehicle_file);
     fclose(line_file);
+    fclose(all_file);
     return;
   }
 
@@ -882,6 +884,7 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
     printf(EMPTY_MESSAGE);
     fclose(vehicle_file);
     fclose(line_file);
+    fclose(all_file);
     return;
   }
   // n will be the one with least registers between lines and vehicles
@@ -897,9 +900,17 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
   // reading both files and checking if the vehicle and line match
   for (int v = 0, l = 0; v < vehicle_total && l < line_total;) {
     if (current_vehicle.line_code == current_line.line_code) {
+
+      // printing
       print_vehicle(current_vehicle);
       print_line(current_line);
       printf("\n\n");
+
+      // writing
+      write_vehicle(all_file, current_vehicle);
+      write_line(all_file, current_line);
+      fputs("\n\n", all_file);
+
       register_total++;
       v++;
       //line is not updated because 1 vehicle only goest o 1 line, but 1 line can go to several vehicles
@@ -924,6 +935,10 @@ void show_all_compatible_registers(char vehicle_filename[], char line_filename[]
   if (register_total == 0)
     printf(EMPTY_MESSAGE);
 
+  // closing files
+  fclose(vehicle_file);
+  fclose(line_file);
+  fclose(all_file);
 }
 
 /*
